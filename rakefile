@@ -1,5 +1,6 @@
 require 'rake/testtask'
 require 'rdoc/task'
+require 'yard'
 
 # The location of this rakefile.
 HERE = __dir__
@@ -10,6 +11,6 @@ Rake::TestTask.new do |t|
 end
 
 desc "Generate documentation"
-RDoc::Task.new do |rdoc|
-    rdoc.rdoc_files.include("lib/**/*.rb")
+YARD::Rake::YardocTask.new :docs do |t|
+    t.files = ["lib/**/*.rb"]
 end
