@@ -81,7 +81,13 @@ module Zemu
             def initialize
                 @initialized = false
 
+                @address = nil
+
                 yield self
+
+                if @address.nil?
+                    raise ConfigError, "The address parameter of a Memory configuration object must be set."
+                end
 
                 @initialized = true
             end
