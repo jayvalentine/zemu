@@ -10,7 +10,7 @@ module Config
                 c.name = "my_config"
             end
 
-            assert_equal "my_config", c.name
+            assert_equal "my_config", conf.name
         end
     end
 end
