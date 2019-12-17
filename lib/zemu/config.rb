@@ -23,4 +23,10 @@ module Zemu
             yield self
         end
     end
+
+    class ConfigError < StandardError
+        def initialize(msg="The configuration is invalid.")
+            super
+        end
+    end
 end
