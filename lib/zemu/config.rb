@@ -82,11 +82,16 @@ module Zemu
                 @initialized = false
 
                 @address = nil
+                @size = nil
 
                 yield self
 
                 if @address.nil?
                     raise ConfigError, "The address parameter of a Memory configuration object must be set."
+                end
+
+                if @size.nil?
+                    raise ConfigError, "The size parameter of a Memory configuration object must be set."
                 end
 
                 @initialized = true
