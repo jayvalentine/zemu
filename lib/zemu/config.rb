@@ -14,8 +14,76 @@ module Zemu
             # Size of the memory section.
             attr_reader :size
 
+            # Constructor.
+            #
+            # Do not use, as this is an abstract class. Use one of the subclasses instead.
             def initialize
                 raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::Memory."
+            end
+
+            # @return [Boolean] true if this memory section is readonly, false otherwise.
+            def readonly?
+                return false
+            end
+
+            private :method_missing
+
+            # @private
+            # Valid parameters for this object.
+            # Should be extended by subclasses but NOT REPLACED.
+            def params
+                return ["address", "size"]
+            end
+
+            # @private
+            # This allows some metaprogramming magic to allow the user to set instance variables
+            # (config parameters) while initializing the configuration object, but ensures
+            # that these parameters are readonly once the object is initialized.
+            def method_missing(m, *args, &block)
+                # We don't allow the setting of instance variables if the object
+                # has been initialized.
+                if @initialized
+                    super
+                end
+
+                params.each do |v|
+                    if m == "#{v}=".to_sym
+                        instance_variable_set("@#{v}", args[0])
+                        return
+                    end
+                end
+
+                # Otherwise just call super's method_missing
+                super
+            end
+        end
+
+        # Read-Only Memory object
+        #
+        # Represents a block of memory which is read-only.
+        class ROM < Memory
+            # Constructor.
+            #
+            # Takes a block in which the parameters of the memory block
+            # can be initialized.
+            #
+            # All parameters can be set within this block.
+            # They become readonly as soon as the block completes.
+            #
+            # @example
+            #   
+            #   Zemu::Config::ROM.new do |m|
+            #       m.address = 0x8000
+            #       m.size = 256
+            #   end
+            #
+            #
+            def initialize
+                @initialized = false
+
+                yield self
+
+                @initialized = true
             end
         end
 
