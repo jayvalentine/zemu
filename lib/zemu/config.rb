@@ -5,6 +5,8 @@ module Zemu
     class Config
         attr_accessor :name
 
+        attr_reader :compiler
+
         # Constructor.
         #
         # Takes a block in which parameters of the configuration
@@ -21,6 +23,7 @@ module Zemu
         # @return [Zemu::Config] the configuration.
         def initialize
             @name = nil
+            @compiler = "clang"
 
             yield self
 
