@@ -107,6 +107,9 @@ module Zemu
         # By default this is +clang+, with no path reference.
         attr_reader :compiler
 
+        # The memory sections of this configuration object.
+        attr_reader :memory
+
         # Constructor.
         #
         # Takes a block in which parameters of the configuration
@@ -128,6 +131,8 @@ module Zemu
             @name = nil
             @compiler = "clang"
 
+            @memory = []
+
             yield self
 
             @initialized = true
@@ -143,6 +148,13 @@ module Zemu
             if /\s/ =~ @name
                 raise ConfigError, "Name cannot contain whitespace."
             end
+        end
+
+        # Adds a new memory section to this configuration.
+        #
+        # @param [Zemu::Config::Memory] mem The memory object to add.
+        def add_memory(mem)
+            @memory << mem
         end
 
         private :method_missing
