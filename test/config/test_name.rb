@@ -34,5 +34,27 @@ module Config
 
             assert_equal "Name must be set.", e.message
         end
+
+        # An exception is raised if the configuration name contains whitespace after initialization.
+        def test_set_whitespace
+            e = assert_raises Zemu::ConfigError do
+                conf = Zemu::Config.new do |c|
+                    c.name = "my config"
+                end
+            end
+
+            assert_equal "Name cannot contain whitespace.", e.message
+        end
+
+        # An exception is raised if the configuration contains a newline after initialization.
+        def test_set_newline
+            e = assert_raises Zemu::ConfigError do
+                conf = Zemu::Config.new do |c|
+                    c.name = "my\nconfig"
+                end
+            end
+
+            assert_equal "Name cannot contain whitespace.", e.message
+        end
     end
 end
