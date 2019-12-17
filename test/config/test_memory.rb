@@ -7,7 +7,7 @@ module Config
         # We should not be able to create an instance of the abstract memory class.
         def test_no_initialize_abstract
             e = assert_raises NotImplementedError do
-                mem = Zemu::Config::Memory.new do |m|
+                _ = Zemu::Config::Memory.new do |m|
                     m.address = 0x0000
                     m.size = 0x1000
                 end
@@ -30,7 +30,7 @@ module Config
         # We have to set the address parameter of a ROM object.
         def test_must_set_address
             e = assert_raises Zemu::ConfigError do
-                mem = Zemu::Config::ROM.new do |m|
+                _ = Zemu::Config::ROM.new do |m|
                     m.size = 0x1000
                 end
             end
