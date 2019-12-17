@@ -3,6 +3,18 @@ module Zemu
     #
     # An object which represents the configuration of a Zemu emulator.
     class Config
+        # Memory object.
+        #
+        # This is an abstract class from which all other memory objects inherit.
+        class Memory
+            # Address of the memory section.
+            # This will be a value between 0x0000 and 0xFFFF.
+            attr_reader :address
+
+            # Size of the memory section.
+            attr_reader :size
+        end
+        
         # The name of the configuration.
         # This will also be the name of the generated executable
         # when the emulator is built.
