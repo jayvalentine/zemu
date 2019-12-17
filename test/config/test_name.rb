@@ -24,5 +24,15 @@ module Config
 
             assert_equal "Name cannot be empty.", e.message
         end
+
+        # An exception is raised if the configuration name is not set during initialization.
+        def test_not_set
+            e = assert_raises Zemu::ConfigError do
+                conf = Zemu::Config.new do |c|
+                end
+            end
+
+            assert_equal "Name must be set.", e.message
+        end
     end
 end
