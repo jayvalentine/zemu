@@ -22,6 +22,10 @@ module Zemu
         def initialize
             yield self
 
+            if @name.nil?
+                raise ConfigError, "Name must be set."
+            end
+
             if @name.empty?
                 raise ConfigError, "Name cannot be empty."
             end
