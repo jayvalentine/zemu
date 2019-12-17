@@ -1,4 +1,5 @@
 require 'rake/testtask'
+require 'rdoc/task'
 
 # The location of this rakefile.
 HERE = __dir__
@@ -6,4 +7,9 @@ HERE = __dir__
 desc "Run tests"
 Rake::TestTask.new do |t|
     t.test_files = FileList['test/config/test_*.rb']
+end
+
+desc "Generate documentation"
+RDoc::Task.new do |rdoc|
+    rdoc.rdoc_files.include("lib/**/*.rb")
 end
