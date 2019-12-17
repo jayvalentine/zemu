@@ -21,6 +21,10 @@ module Zemu
         # @return [Zemu::Config] the configuration.
         def initialize
             yield self
+
+            if @name.empty?
+                raise ConfigError, "Name cannot be empty."
+            end
         end
     end
 
