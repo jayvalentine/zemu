@@ -28,10 +28,14 @@ module Zemu
         #
         # @raise [Zemu::ConfigError] Raised if the +name+ parameter is not set, or contains whitespace.
         def initialize
+            @initialized = false
+
             @name = nil
             @compiler = "clang"
 
             yield self
+
+            @initialized = true
 
             if @name.nil?
                 raise ConfigError, "Name must be set."
@@ -44,6 +48,30 @@ module Zemu
             if /\s/ =~ @name
                 raise ConfigError, "Name cannot contain whitespace."
             end
+        end
+
+        private :method_missing
+
+        # @private
+        # This allows some metaprogramming magic to allow the user to set instance variables
+        # (config parameters) while initializing the configuration object, but ensures
+        # that these parameters are readonly once the object is initialized.
+        def method_missing(m, *args, &block)
+            # We don't allow the setting of instance variables if the object
+            # has been initialized.
+            if @initialized
+                super
+            end
+
+            %w[name compiler].each do |v|
+                if m == "#{v}=".to_sym
+                    instance_variable_set("@#{v}", args[0])
+                    return
+                end
+            end
+
+            # Otherwise just call super's method_missing
+            super
         end
     end
 

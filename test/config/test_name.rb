@@ -56,5 +56,16 @@ module Config
 
             assert_equal "Name cannot contain whitespace.", e.message
         end
+
+        # The name parameter should be readonly once the configuration object has been initialized.
+        def test_readonly_once_initialized
+            conf = Zemu::Config.new do |c|
+                c.name = "my_config"
+            end
+
+            assert_raises NoMethodError do
+                conf.name = "your_config"
+            end
+        end
     end
 end
