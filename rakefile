@@ -1,0 +1,9 @@
+require 'rake/testtask'
+
+# The location of this rakefile.
+HERE = __dir__
+
+desc "Run tests"
+Rake::TestTask.new do |t|
+    t.test_files = FileList['test/config/test_*.rb']
+end
