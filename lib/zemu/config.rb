@@ -20,6 +20,8 @@ module Zemu
         #
         # @return [Zemu::Config] the configuration.
         def initialize
+            @name = nil
+
             yield self
 
             if @name.nil?
@@ -28,6 +30,10 @@ module Zemu
 
             if @name.empty?
                 raise ConfigError, "Name cannot be empty."
+            end
+
+            if /\s/ =~ @name
+                raise ConfigError, "Name cannot contain whitespace."
             end
         end
     end
