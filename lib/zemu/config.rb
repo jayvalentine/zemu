@@ -13,8 +13,12 @@ module Zemu
 
             # Size of the memory section.
             attr_reader :size
+
+            def initialize
+                raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::Memory."
+            end
         end
-        
+
         # The name of the configuration.
         # This will also be the name of the generated executable
         # when the emulator is built.
