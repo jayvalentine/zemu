@@ -17,7 +17,7 @@ module Config
         # complete.
         def test_set_empty
             e = assert_raises Zemu::ConfigError do
-                conf = Zemu::Config.new do |c|
+                _ = Zemu::Config.new do |c|
                     c.name = ""
                 end
             end
@@ -28,7 +28,7 @@ module Config
         # An exception is raised if the configuration name is not set during initialization.
         def test_not_set
             e = assert_raises Zemu::ConfigError do
-                conf = Zemu::Config.new do |c|
+                _ = Zemu::Config.new do |c|
                 end
             end
 
@@ -38,7 +38,7 @@ module Config
         # An exception is raised if the configuration name contains whitespace after initialization.
         def test_set_whitespace
             e = assert_raises Zemu::ConfigError do
-                conf = Zemu::Config.new do |c|
+                _ = Zemu::Config.new do |c|
                     c.name = "my config"
                 end
             end
@@ -49,7 +49,7 @@ module Config
         # An exception is raised if the configuration contains a newline after initialization.
         def test_set_newline
             e = assert_raises Zemu::ConfigError do
-                conf = Zemu::Config.new do |c|
+                _ = Zemu::Config.new do |c|
                     c.name = "my\nconfig"
                 end
             end
