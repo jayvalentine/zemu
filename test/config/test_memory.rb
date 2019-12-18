@@ -86,7 +86,7 @@ module Config
                 m.address = 0x8000
                 m.size = 0x1000
 
-                contents [0, 255, 100, 20, 42, 1, 254]
+                m.contents [0, 255, 100, 20, 42, 1, 254]
             end
 
             assert_equal 0x1000, mem.contents.size
