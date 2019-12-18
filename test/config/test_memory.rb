@@ -64,5 +64,19 @@ module Config
 
             assert_equal "The name parameter of a Zemu::Config::ROM configuration object must be set.", e.message
         end
+
+        # A ROM object should by default be filled with 0x00 bytes.
+        def test_initial_val_default
+            mem = Zemu::Config::ROM.new do |m|
+                m.name = "my_rom"
+                m.address = 0x8000
+                m.size = 0x1000
+            end
+
+            assert_equal 0x1000, mem.contents.size
+            mem.contents.each do |b|
+                assert_equal 0x00, b
+            end
+        end
     end
 end
