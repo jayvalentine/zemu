@@ -7,9 +7,9 @@ module Config
         # We should not be able to create an instance of the abstract memory class.
         def test_no_initialize_abstract
             e = assert_raises NotImplementedError do
-                _ = Zemu::Config::Memory.new do |m|
-                    m.address = 0x0000
-                    m.size = 0x1000
+                _ = Zemu::Config::Memory.new do
+                    address 0x0000
+                    size 0x1000
                 end
             end
 
@@ -18,10 +18,10 @@ module Config
 
         # We should be able to create a ROM memory object with a valid size and address.
         def test_initialize_rom
-            mem = Zemu::Config::ROM.new do |m|
-                m.name = "my_rom"
-                m.address = 0x0000
-                m.size = 0x1000
+            mem = Zemu::Config::ROM.new do
+                name "my_rom"
+                address 0x0000
+                size 0x1000
             end
 
             assert_equal "my_rom", mem.name
@@ -32,9 +32,9 @@ module Config
         # We have to set the address parameter of a ROM object.
         def test_must_set_address
             e = assert_raises Zemu::ConfigError do
-                _ = Zemu::Config::ROM.new do |m|
-                    m.size = 0x1000
-                    m.name = "my_rom"
+                _ = Zemu::Config::ROM.new do
+                    size 0x1000
+                    name "my_rom"
                 end
             end
 
@@ -44,9 +44,9 @@ module Config
         # We have to set the size parameter of a ROM object.
         def test_must_set_size
             e = assert_raises Zemu::ConfigError do
-                _ = Zemu::Config::ROM.new do |m|
-                    m.address = 0x8000
-                    m.name = "my_rom"
+                _ = Zemu::Config::ROM.new do
+                    address 0x8000
+                    name "my_rom"
                 end
             end
 
@@ -56,9 +56,9 @@ module Config
         # We have to set the name parameter of a ROM object.
         def test_must_set_name
             e = assert_raises Zemu::ConfigError do
-                _ = Zemu::Config::ROM.new do |m|
-                    m.address = 0x8000
-                    m.size = 0x1000
+                _ = Zemu::Config::ROM.new do
+                    address 0x8000
+                    size 0x1000
                 end
             end
 
@@ -67,10 +67,10 @@ module Config
 
         # A ROM object should by default be filled with 0x00 bytes.
         def test_initial_val_default
-            mem = Zemu::Config::ROM.new do |m|
-                m.name = "my_rom"
-                m.address = 0x8000
-                m.size = 0x1000
+            mem = Zemu::Config::ROM.new do
+                name "my_rom"
+                address 0x8000
+                size 0x1000
             end
 
             assert_equal 0x1000, mem.contents.size
@@ -81,12 +81,12 @@ module Config
 
         # A ROM object can be initialized with an array of numbers N where 0 <= N < 256.
         def test_initial_val_set_array
-            mem = Zemu::Config::ROM.new do |m|
-                m.name = "my_rom"
-                m.address = 0x8000
-                m.size = 0x1000
+            mem = Zemu::Config::ROM.new do
+                name "my_rom"
+                address 0x8000
+                size 0x1000
 
-                m.contents [0, 255, 100, 20, 42, 1, 254]
+                contents [0, 255, 100, 20, 42, 1, 254]
             end
 
             assert_equal 0x1000, mem.contents.size
