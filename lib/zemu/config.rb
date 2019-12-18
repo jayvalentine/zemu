@@ -16,7 +16,7 @@ module Zemu
 
         protected :params_init
 
-        def initialize
+        def initialize(&block)
             if self.class == Zemu::ConfigObject
                 raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::ConfigObject."
             end
@@ -32,8 +32,8 @@ module Zemu
                 end
             end
 
-            # Yield self for configuration by a block.
-            yield self
+            # Instance eval the block.
+            instance_eval(&block)
 
             # Raise a ConfigError if any of the parameters are unset.
             params.each do |p|
@@ -52,11 +52,13 @@ module Zemu
             params.each do |v|
                 # We don't allow the setting of instance variables if the object
                 # has been initialized.
-                if !@initialized && m == "#{v}=".to_sym
-                    instance_variable_set("@#{v}", args[0])
-                    return
-                elsif m == "#{v}".to_sym
-                    return instance_variable_get("@#{v}")
+                if m == "#{v}".to_sym
+                    if args.size == 1 && !@initialized
+                        instance_variable_set("@#{v}", args[0])
+                        return
+                    elsif args.size == 0
+                        return instance_variable_get("@#{v}")
+                    end
                 end
             end
             
@@ -139,15 +141,6 @@ module Zemu
                 return true
             end
         end
-
-        # The name of the configuration.
-        # This will also be the name of the generated executable
-        # when the emulator is built.
-        attr_reader :name
-
-        # The path to the compiler to use when building.
-        # By default this is +clang+, with no path reference.
-        attr_reader :compiler
 
         # The memory sections of this configuration object.
         attr_reader :memory
