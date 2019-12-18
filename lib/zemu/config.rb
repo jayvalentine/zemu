@@ -1,4 +1,66 @@
 module Zemu
+        # Abstract configuration object.
+    # All configuration objects should inherit from this.
+    class ConfigObject
+        # Defines the parameters of this configuration object.
+        def params
+            raise NotImplementedError, "params must be overridden by inheriting class."
+        end
+
+        protected :params
+
+        # Defines the initial values of parameters, if any.
+        def params_init
+            return {}
+        end
+
+        protected :params_init
+
+        def initialize
+            @initialized = false
+
+            # Initialize each parameter to nil
+            params.each do |p|
+                if params_init[p].nil?
+                    instance_variable_set("@#{p}", nil)
+                else
+                    instance_variable_set("@#{p}", params_init[p])
+                end
+            end
+
+            # Yield self for configuration by a block.
+            yield self
+
+            # Raise a ConfigError if any of the parameters are unset.
+            params.each do |p|
+                if instance_variable_get("@#{p}").nil?
+                    raise ConfigError, "The #{p} parameter of a #{self.class.name} configuration object must be set."
+                end
+            end
+
+            @initialized = true
+        end
+
+        # This allows some metaprogramming magic to allow the user to set instance variables
+        # (config parameters) while initializing the configuration object, but ensures
+        # that these parameters are readonly once the object is initialized.
+        def method_missing(m, *args, &block)
+            params.each do |v|
+                # We don't allow the setting of instance variables if the object
+                # has been initialized.
+                if !@initialized && m == "#{v}=".to_sym
+                    instance_variable_set("@#{v}", args[0])
+                    return
+                elsif m == "#{v}".to_sym
+                    return instance_variable_get("@#{v}")
+                end
+            end
+            
+            # Otherwise just call super's method_missing
+            super
+        end
+    end
+
     # Configuration object.
     #
     # An object which represents the configuration of a Zemu emulator.
@@ -6,22 +68,12 @@ module Zemu
         # Memory object.
         #
         # This is an abstract class from which all other memory objects inherit.
-        class Memory
-            # Name of the memory section.
-            attr_reader :name
-
-            # Address of the memory section.
-            # This will be a value between 0x0000 and 0xFFFF.
-            attr_reader :address
-
-            # Size of the memory section.
-            attr_reader :size
-
+        class Memory < ConfigObject
             # Constructor.
             #
             # Do not use, as this is an abstract class. Use one of the subclasses instead.
             def initialize
-                raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::Memory."
+                super
             end
 
             # @return [Boolean] true if this memory section is readonly, false otherwise.
@@ -32,33 +84,8 @@ module Zemu
             # Valid parameters for this object.
             # Should be extended by subclasses but NOT REPLACED.
             def params
-                return ["address", "size", "name"]
+                return %w(name address size)
             end
-            
-            private :params
-            
-            # This allows some metaprogramming magic to allow the user to set instance variables
-            # (config parameters) while initializing the configuration object, but ensures
-            # that these parameters are readonly once the object is initialized.
-            def method_missing(m, *args, &block)
-                # We don't allow the setting of instance variables if the object
-                # has been initialized.
-                if @initialized
-                    super
-                end
-                
-                params.each do |v|
-                    if m == "#{v}=".to_sym
-                        instance_variable_set("@#{v}", args[0])
-                        return
-                    end
-                end
-                
-                # Otherwise just call super's method_missing
-                super
-            end
-            
-            private :method_missing
         end
 
         # Read-Only Memory object
@@ -82,27 +109,11 @@ module Zemu
             #
             #
             def initialize
-                @initialized = false
+                super
+            end
 
-                @address = nil
-                @size = nil
-                @name = nil
-
-                yield self
-
-                if @address.nil?
-                    raise ConfigError, "The address parameter of a Memory configuration object must be set."
-                end
-
-                if @size.nil?
-                    raise ConfigError, "The size parameter of a Memory configuration object must be set."
-                end
-
-                if @name.nil?
-                    raise ConfigError, "The name parameter of a Memory configuration object must be set."
-                end
-
-                @initialized = true
+            def readonly?
+                return true
             end
         end
 
@@ -178,7 +189,7 @@ module Zemu
                 super
             end
 
-            %w[name compiler].each do |v|
+            %w(name compiler).each do |v|
                 if m == "#{v}=".to_sym
                     instance_variable_set("@#{v}", args[0])
                     return
