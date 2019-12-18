@@ -29,16 +29,14 @@ module Zemu
                 return false
             end
 
-            private :method_missing
-
-            # @private
             # Valid parameters for this object.
             # Should be extended by subclasses but NOT REPLACED.
             def params
                 return ["address", "size", "name"]
             end
-
-            # @private
+            
+            private :params
+            
             # This allows some metaprogramming magic to allow the user to set instance variables
             # (config parameters) while initializing the configuration object, but ensures
             # that these parameters are readonly once the object is initialized.
@@ -48,17 +46,19 @@ module Zemu
                 if @initialized
                     super
                 end
-
+                
                 params.each do |v|
                     if m == "#{v}=".to_sym
                         instance_variable_set("@#{v}", args[0])
                         return
                     end
                 end
-
+                
                 # Otherwise just call super's method_missing
                 super
             end
+            
+            private :method_missing
         end
 
         # Read-Only Memory object
