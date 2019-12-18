@@ -22,7 +22,7 @@ module Config
                 end
             end
 
-            assert_equal "Name cannot be empty.", e.message
+            assert_equal "The name parameter of a Zemu::Config configuration object cannot be empty.", e.message
         end
 
         # An exception is raised if the configuration name is not set during initialization.
@@ -32,7 +32,7 @@ module Config
                 end
             end
 
-            assert_equal "Name must be set.", e.message
+            assert_equal "The name parameter of a Zemu::Config configuration object must be set.", e.message
         end
 
         # An exception is raised if the configuration name contains whitespace after initialization.
@@ -43,7 +43,7 @@ module Config
                 end
             end
 
-            assert_equal "Name cannot contain whitespace.", e.message
+            assert_equal "The name parameter of a Zemu::Config configuration object cannot contain whitespace.", e.message
         end
 
         # An exception is raised if the configuration contains a newline after initialization.
@@ -54,7 +54,7 @@ module Config
                 end
             end
 
-            assert_equal "Name cannot contain whitespace.", e.message
+            assert_equal "The name parameter of a Zemu::Config configuration object cannot contain whitespace.", e.message
         end
 
         # The name parameter should be readonly once the configuration object has been initialized.
