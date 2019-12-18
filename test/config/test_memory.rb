@@ -38,7 +38,7 @@ module Config
                 end
             end
 
-            assert_equal "The address parameter of a Memory configuration object must be set.", e.message
+            assert_equal "The address parameter of a Zemu::Config::ROM configuration object must be set.", e.message
         end
 
         # We have to set the size parameter of a ROM object.
@@ -50,7 +50,7 @@ module Config
                 end
             end
 
-            assert_equal "The size parameter of a Memory configuration object must be set.", e.message
+            assert_equal "The size parameter of a Zemu::Config::ROM configuration object must be set.", e.message
         end
 
         # We have to set the name parameter of a ROM object.
@@ -62,7 +62,7 @@ module Config
                 end
             end
 
-            assert_equal "The name parameter of a Memory configuration object must be set.", e.message
+            assert_equal "The name parameter of a Zemu::Config::ROM configuration object must be set.", e.message
         end
     end
 end
