@@ -52,5 +52,17 @@ module Config
 
             assert_equal "The size parameter of a Memory configuration object must be set.", e.message
         end
+
+        # We have to set the name parameter of a ROM object.
+        def test_must_set_name
+            e = assert_raises Zemu::ConfigError do
+                _ = Zemu::Config::ROM.new do |m|
+                    m.address = 0x8000
+                    m.size = 0x1000
+                end
+            end
+
+            assert_equal "The name parameter of a Memory configuration object must be set.", e.message
+        end
     end
 end
