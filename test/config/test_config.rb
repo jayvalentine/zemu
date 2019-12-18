@@ -4,6 +4,17 @@ require 'zemu'
 module Config
     # Tests the overall behaviour of the config object.
     class ConfigTest < Minitest::Test
+        # We should not be able to construct a ConfigObject directly.
+        def test_no_construct_abstract
+            e = assert_raises NotImplementedError do
+                _ = Zemu::ConfigObject.new do |c|
+                    c.some_param = "blah"
+                end
+            end
+
+            assert_equal "Cannot construct an instance of the abstract class Zemu::Config::ConfigObject.", e.message
+        end
+
         # We should be able to add a memory section to a config object.
         def test_add_memory
             conf = Zemu::Config.new do |c|
