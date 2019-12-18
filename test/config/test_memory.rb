@@ -78,5 +78,22 @@ module Config
                 assert_equal 0x00, b
             end
         end
+
+        # A ROM object can be initialized with an array of numbers N where 0 <= N < 256.
+        def test_initial_val_set_array
+            mem = Zemu::Config::ROM.new do |m|
+                m.name = "my_rom"
+                m.address = 0x8000
+                m.size = 0x1000
+
+                contents [0, 255, 100, 20, 42, 1, 254]
+            end
+
+            assert_equal 0x1000, mem.contents.size
+            assert_equal [0, 255, 100, 20, 42, 1, 254], mem.contents[0..6]
+            mem.contents[7..-1].each do |b|
+                assert_equal 0x00, b
+            end
+        end
     end
 end
