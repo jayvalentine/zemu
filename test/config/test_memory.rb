@@ -19,10 +19,12 @@ module Config
         # We should be able to create a ROM memory object with a valid size and address.
         def test_initialize_rom
             mem = Zemu::Config::ROM.new do |m|
+                m.name = "my_rom"
                 m.address = 0x0000
                 m.size = 0x1000
             end
 
+            assert_equal "my_rom", mem.name
             assert_equal 0x0000, mem.address
             assert_equal 0x1000, mem.size
         end
@@ -32,6 +34,7 @@ module Config
             e = assert_raises Zemu::ConfigError do
                 _ = Zemu::Config::ROM.new do |m|
                     m.size = 0x1000
+                    m.name = "my_rom"
                 end
             end
 
@@ -43,6 +46,7 @@ module Config
             e = assert_raises Zemu::ConfigError do
                 _ = Zemu::Config::ROM.new do |m|
                     m.address = 0x8000
+                    m.name = "my_rom"
                 end
             end
 
