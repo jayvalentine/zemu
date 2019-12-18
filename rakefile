@@ -10,7 +10,14 @@ Rake::TestTask.new do |t|
     t.test_files = FileList['test/config/test_*.rb']
 end
 
-desc "Generate documentation"
-YARD::Rake::YardocTask.new :docs do |t|
-    t.files = ["lib/**/*.rb"]
+namespace :docs do
+    desc "Generate documentation"
+    YARD::Rake::YardocTask.new :build do |t|
+        t.files = ["lib/**/*.rb"]
+    end
+
+    desc "View documentation"
+    task :view => :build do
+        system "firefox #{File.join(HERE, "doc", "index.html")}"
+    end
 end
