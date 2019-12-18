@@ -1,5 +1,5 @@
 module Zemu
-        # Abstract configuration object.
+    # Abstract configuration object.
     # All configuration objects should inherit from this.
     class ConfigObject
         # Defines the parameters of this configuration object.
@@ -70,6 +70,10 @@ module Zemu
     # Configuration object.
     #
     # An object which represents the configuration of a Zemu emulator.
+    #
+    # @param [String] name The name of the configuration.
+    # @param [String] compiler The path to the compiler to be used for compiling the emulator executable.
+    #
     class Config < ConfigObject
         # Memory object.
         #
@@ -93,6 +97,8 @@ module Zemu
                 end
             end
 
+            # Gets or sets an array of bytes representing the initial state
+            # of this memory block.
             def contents(*args)
                 if args.size.zero?
                     return @contents
@@ -127,9 +133,9 @@ module Zemu
             #
             # @example
             #   
-            #   Zemu::Config::ROM.new do |m|
-            #       m.address = 0x8000
-            #       m.size = 256
+            #   Zemu::Config::ROM.new do
+            #       address 0x8000
+            #       size 256
             #   end
             #
             #
@@ -145,10 +151,12 @@ module Zemu
         # The memory sections of this configuration object.
         attr_reader :memory
 
+        # Parameters accessible by this configuration object.
         def params
             return %w(name compiler)
         end
 
+        # Initial value for parameters of this configuration object.
         def params_init
             return { "compiler" => "clang" }
         end
@@ -163,8 +171,14 @@ module Zemu
         #
         # @example
         #
-        #   Zemu::Config.new do |c|
-        #       c.name = "my_config"
+        #   Zemu::Config.new do
+        #       name "my_config"
+        #
+        #       add_memory Zemu::Config::ROM.new do
+        #           name "rom"
+        #           address 0x0000
+        #           size 0x1000
+        #       end
         #   end
         #
         # @raise [Zemu::ConfigError] Raised if the +name+ parameter is not set, or contains whitespace.
@@ -190,6 +204,7 @@ module Zemu
         end
     end
 
+    # Error raised when a configuration is initialized incorrectly.
     class ConfigError < StandardError
         def initialize(msg="The configuration is invalid.")
             super

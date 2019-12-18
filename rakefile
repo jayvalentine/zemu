@@ -13,7 +13,12 @@ end
 namespace :docs do
     desc "Generate documentation"
     YARD::Rake::YardocTask.new :build do |t|
+        t.before do
+            system("rm -r #{File.join(HERE, "doc")}")
+        end
+        
         t.files = ["lib/**/*.rb"]
+        t.stats_options = ["--list_undoc"]
     end
 
     desc "View documentation"
