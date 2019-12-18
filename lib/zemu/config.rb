@@ -17,6 +17,10 @@ module Zemu
         protected :params_init
 
         def initialize
+            if self.class == Zemu::ConfigObject
+                raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::ConfigObject."
+            end
+
             @initialized = false
 
             # Initialize each parameter to nil

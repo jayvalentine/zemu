@@ -12,7 +12,7 @@ module Config
                 end
             end
 
-            assert_equal "Cannot construct an instance of the abstract class Zemu::Config::ConfigObject.", e.message
+            assert_equal "Cannot construct an instance of the abstract class Zemu::ConfigObject.", e.message
         end
 
         # We should be able to add a memory section to a config object.
