@@ -73,6 +73,10 @@ module Zemu
             #
             # Do not use, as this is an abstract class. Use one of the subclasses instead.
             def initialize
+                if self.class == Zemu::Config::Memory
+                    raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::Memory."
+                end
+
                 super
             end
 
