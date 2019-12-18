@@ -81,18 +81,22 @@ module Zemu
                     raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::Memory."
                 end
 
-                super
-
                 @contents = []
 
-                # Initialize contents to 0x00 bytes.
-                @size.times do
+                super
+
+                # Pad contents with 0x00 bytes.
+                (@size - @contents.size).times do
                     @contents << 0x00
                 end
             end
 
-            def contents
-                return @contents
+            def contents(*args)
+                if args.size.zero?
+                    return @contents
+                else
+                    @contents = args[0]
+                end
             end
 
             # @return [Boolean] true if this memory section is readonly, false otherwise.
