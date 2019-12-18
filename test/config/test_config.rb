@@ -10,6 +10,7 @@ module Config
                 c.name = "my_config"
 
                 mem = Zemu::Config::ROM.new do |m|
+                    m.name = "my_rom"
                     m.address = 0x8000
                     m.size = 0x1000
                 end
@@ -17,6 +18,7 @@ module Config
                 c.add_memory mem
             end
 
+            assert_equal "my_rom", conf.memory[0].name
             assert_equal 0x8000, conf.memory[0].address
             assert_equal 0x1000, conf.memory[0].size
         end
