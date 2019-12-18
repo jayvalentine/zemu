@@ -82,6 +82,17 @@ module Zemu
                 end
 
                 super
+
+                @contents = []
+
+                # Initialize contents to 0x00 bytes.
+                @size.times do
+                    @contents << 0x00
+                end
+            end
+
+            def contents
+                return @contents
             end
 
             # @return [Boolean] true if this memory section is readonly, false otherwise.
