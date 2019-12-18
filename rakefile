@@ -12,13 +12,16 @@ end
 
 namespace :docs do
     desc "Generate documentation"
-    YARD::Rake::YardocTask.new :build do |t|
-        t.before do
-            system("rm -r #{File.join(HERE, "doc")}")
-        end
+    task :build do
+        system("rm -r #{File.join(HERE, "doc")}")
         
-        t.files = ["lib/**/*.rb"]
-        t.stats_options = ["--list_undoc"]
+        output = `yardoc`
+
+        unless /100.00% documented/ =~ output
+            system("yard stats --list-undoc")
+            puts ""
+            abort("Aborting task due to missing documentation!")
+        end
     end
 
     desc "View documentation"
