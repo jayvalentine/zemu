@@ -7,6 +7,9 @@ module Zemu
         #
         # This is an abstract class from which all other memory objects inherit.
         class Memory
+            # Name of the memory section.
+            attr_reader :name
+
             # Address of the memory section.
             # This will be a value between 0x0000 and 0xFFFF.
             attr_reader :address
@@ -32,7 +35,7 @@ module Zemu
             # Valid parameters for this object.
             # Should be extended by subclasses but NOT REPLACED.
             def params
-                return ["address", "size"]
+                return ["address", "size", "name"]
             end
 
             # @private
