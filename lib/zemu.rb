@@ -73,14 +73,22 @@ module Zemu
         compiler = configuration.compiler
 
         inputs = [
+            "main.c",                       # main library functionality
             "debug.c",                      # debug functionality
             "memory.c",                     # memory modules defined in config
             "external/z80/sources/Z80.c"    # z80 core library
         ]
 
-        inputs.map! { |i| File.join(SRC, i) }
+        inputs_str = inputs.map { |i| File.join(SRC, i) }.join(" ")
 
-        command = "#{compiler} -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup -o #{output} #{inputs.join(" ")}"
+        defines = {
+            "CPU_Z80_STATIC" => 1,
+            "CPU_Z80_USE_LOCAL_HEADER" => 1
+        }
+
+        defines_str = defines.map { |d, v| "-D#{d}=#{v}" }.join(" ")
+
+        command = "#{compiler} -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{defines_str} -o #{output} #{inputs_str}"
 
         # Run the compiler and generate a library.
         return system(command)
