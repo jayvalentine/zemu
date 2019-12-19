@@ -4,15 +4,15 @@ require 'zemu'
 class StartTest < Minitest::Test
     def test_start
         conf = Zemu::Config.new do
-            name "my_zemu"
-            add_memory Zemu::Config::ROM.new do
+            name "zemu"
+            add_memory (Zemu::Config::ROM.new do
                 name "rom"
                 address 0x0000
                 size 0x1000
 
                 # 0x76 is the opcode for the HALT instruction.
                 contents [0x76]
-            end
+            end)
         end
 
         instance = Zemu.start(conf)
