@@ -3,7 +3,7 @@
 <% memory.each do |mem| %>
 /* Initialization memory block "<%= mem.name %>" */
 <%= mem.readonly? ? "const " : "" %>zuint8 zemu_memory_block_<%= mem.name %>[0x<%= mem.size.to_s(16) %>] =
-{<% mem.contents.each_with_index do |b, i| %><%= (i % 16 == 0) ? "\n    " : "" %><%= "0x#{b.to_s(16)}, " %><% end %>
+{<% mem.contents.each_with_index do |b, i| %><%= (i % 16 == 0) ? "\n    " : "" %><%= ("0x%02x, " % b) %><% end %>
 };
 <% end %>
 
