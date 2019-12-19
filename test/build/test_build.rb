@@ -3,6 +3,8 @@ require 'zemu'
 
 module Build
     class BuildTest < Minitest::Test
+        BIN = File.join(__dir__, "..", "..", "bin")
+
         # We should be able to build a simple test case with just a ROM section,
         # with the default compiler settings.
         def test_simple_default
@@ -20,7 +22,7 @@ module Build
 
             assert_true result
 
-            assert_true File.exist?("zemu.so")
+            assert_true File.exist?(File.join(BIN, "zemu.so"))
         end
     end
 end

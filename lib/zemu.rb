@@ -56,4 +56,33 @@ require_relative 'zemu/config'
 #   instance.quit
 #
 module Zemu
+    # Location of C source for the emulator.
+    SRC = File.join(__dir__, "..", "src")
+
+    # Location for build libraries.
+    BIN = File.join(__dir__, "..", "bin")
+
+    # Builds a library according to the given configuration.
+    #
+    # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
+    #
+    # @returns true if the build is a success, false (build failed) or nil (compiler not found) otherwise.
+    def Zemu::build(configuration)
+        output = File.join(BIN, "#{configuration.name}.so")
+
+        compiler = configuration.compiler
+
+        inputs = [
+            "debug.c",              # debug functionality
+            "memory.c",             # memory modules defined in config
+            "external/z80/z80.c"    # z80 core library
+        ]
+
+        inputs.map! { |i| File.join(SRC, i) }
+
+        command = "#{compiler} -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup -o #{output} #{inputs.join(" ")}"
+
+        # Run the compiler and generate a library.
+        return system(command)
+    end
 end
