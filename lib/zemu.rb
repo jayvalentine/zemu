@@ -97,6 +97,7 @@ module Zemu
             "autogen",
             "external/Z/API",
             "external/z80/API",
+            "external/z80/API/emulation/CPU",
             "."
         ]
 
