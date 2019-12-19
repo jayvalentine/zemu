@@ -15,6 +15,8 @@ module Build
                     name "rom"
                     address 0x0000
                     size 0x1000
+
+                    contents [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]
                 end)
             end
 
