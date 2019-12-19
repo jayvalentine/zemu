@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "external/z80/API/emulation/CPU/Z80.h"
+#include "emulation/CPU/Z80.h"
 
 #include "debug.h"
 

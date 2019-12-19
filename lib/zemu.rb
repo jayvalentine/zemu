@@ -93,7 +93,16 @@ module Zemu
 
         defines_str = defines.map { |d, v| "-D#{d}=#{v}" }.join(" ")
 
-        command = "#{compiler} -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{defines_str} -o #{output} #{inputs_str}"
+        includes = [
+            "autogen",
+            "external/Z/API",
+            "external/z80/API",
+            "."
+        ]
+
+        includes_str = includes.map { |i| "-I#{File.join(SRC, i)}" }.join(" ")
+
+        command = "#{compiler} -Werror -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{includes_str} #{defines_str} -o #{output} #{inputs_str}"
 
         # Run the compiler and generate a library.
         return system(command)

@@ -1,11 +1,11 @@
-#include "Z80.h"
+#include "emulation/CPU/Z80.h"
 
 typedef enum RunState
 {
     RUNNING,
     HALTED,
     UNDEFINED
-};
+} RunState;
 
 zusize zemu_debug_continue(Z80 * instance);
 
