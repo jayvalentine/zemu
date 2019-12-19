@@ -103,7 +103,7 @@ module Zemu
 
         includes_str = includes.map { |i| "-I#{File.join(SRC, i)}" }.join(" ")
 
-        command = "#{compiler} -Werror -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{includes_str} #{defines_str} -o #{output} #{inputs_str}"
+        command = "#{compiler} -Werror -Wno-unknown-warning-option -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{includes_str} #{defines_str} -o #{output} #{inputs_str}"
 
         # Run the compiler and generate a library.
         return system(command)
