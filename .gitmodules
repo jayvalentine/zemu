@@ -1,3 +1,6 @@
 [submodule "src/external/z80"]
 	path = src/external/z80
 	url = https://github.com/redcode/Z80
+[submodule "src/external/Z"]
+	path = src/external/Z
+	url = https://github.com/redcode/Z
