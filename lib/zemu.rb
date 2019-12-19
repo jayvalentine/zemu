@@ -73,9 +73,9 @@ module Zemu
         compiler = configuration.compiler
 
         inputs = [
-            "debug.c",              # debug functionality
-            "memory.c",             # memory modules defined in config
-            "external/z80/z80.c"    # z80 core library
+            "debug.c",                      # debug functionality
+            "memory.c",                     # memory modules defined in config
+            "external/z80/sources/Z80.c"    # z80 core library
         ]
 
         inputs.map! { |i| File.join(SRC, i) }
