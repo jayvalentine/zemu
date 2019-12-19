@@ -1,5 +1,18 @@
 #include "memory.h"
 
+<% memory.each do |mem| %>
+/* Initialization memory block "<%= mem.name %>" */
+<%= mem.readonly? ? "const " : "" %>zuint8 zemu_memory_block_<%= mem.name %>[0x<%= mem.size.to_s(16) %>] =
+{
+    <% contents = "" %>
+    <% mem.contents.each_with_index do |b, i| %>
+        <% contents += "0x#{b.to_s(16)}, " %>
+        <% contents += "\n" if ((i > 0) && (i % 16 == 0)) %>
+    <% end %>
+    <%= contents %>
+};
+<% end %>
+
 zuint8 zemu_memory_read(void * context, zuint16 address)
 {
 <% memory.each do |mem| %>
