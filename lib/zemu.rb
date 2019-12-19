@@ -64,6 +64,15 @@ module Zemu
     # Location for build libraries.
     BIN = File.join(__dir__, "..", "bin")
 
+    # Build and start an emulator according to the given configuration.
+    #
+    # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
+    def Zemu::start(configuration)
+        build(configuration)
+
+        return nil
+    end
+
     # Builds a library according to the given configuration.
     #
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
