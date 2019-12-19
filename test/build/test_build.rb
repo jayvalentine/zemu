@@ -14,13 +14,13 @@ module Build
                     address 0x0000
                     size 0x1000
                 end)
-
-                result = Zemu.build(conf)
-
-                assert_true result
-
-                assert_true File.exist?("zemu.so")
             end
+
+            result = Zemu.build(conf)
+
+            assert_true result
+
+            assert_true File.exist?("zemu.so")
         end
     end
 end
