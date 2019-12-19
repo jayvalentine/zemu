@@ -7,6 +7,9 @@ zuint8 zemu_memory_read(void * context, zuint16 address)
     {
         return zemu_memory_block_<%= mem.name %>[address - 0x<%= mem.address.to_s(16) %>];
     }
+
+    /* Unmapped memory has a value of 0. */
+    return 0;
 <% end %>
 }
 
