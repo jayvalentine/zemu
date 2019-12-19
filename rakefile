@@ -5,9 +5,19 @@ require 'yard'
 # The location of this rakefile.
 HERE = __dir__
 
-desc "Run tests"
-Rake::TestTask.new do |t|
-    t.test_files = FileList['test/config/test_*.rb']
+namespace :test do
+    desc "Run config tests"
+    Rake::TestTask.new :config do |t|
+        t.test_files = FileList['test/config/test_*.rb']
+    end
+
+    desc "Run emulator tests"
+    Rake::TestTask.new :emulator do |t|
+        t.test_files = FileList['test/emulator/test_*.rb']
+    end
+
+    desc "Run all tests"
+    Rake::TestTask.new :all => [:config, :emulator]
 end
 
 namespace :docs do
