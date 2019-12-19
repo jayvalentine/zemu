@@ -148,6 +148,11 @@ module Zemu
             end
         end
 
+        # Gets a binding for this object.
+        def get_binding
+            return binding
+        end
+
         # The memory sections of this configuration object.
         attr_reader :memory
 
