@@ -20,9 +20,9 @@ module Build
 
             result = Zemu.build(conf)
 
-            assert_true result
+            assert result
 
-            assert_true File.exist?(File.join(BIN, "zemu.so"))
+            assert File.exist?(File.join(BIN, "zemu.so"))
         end
     end
 end
