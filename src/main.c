@@ -2,6 +2,8 @@
 
 #include "external/z80/API/emulation/CPU/Z80.h"
 
+#include "debug.h"
+
 #include "memory.h"
 #include "io.h"
 #include "interrupt.h"
@@ -40,7 +42,7 @@ Z80 * zemu_init(void)
      * Set to NULL for now.
      * This will need to be set so we can see if the CPU is halted.
      */
-    instance->halt = NULL;
+    instance->halt = zemu_debug_halt;
 
     /* Return the now-initialized instance. */
     return instance;
