@@ -9,7 +9,7 @@ class StartTest < Minitest::Test
             name "zemu"
 
             output_directory BIN
-            
+
             add_memory (Zemu::Config::ROM.new do
                 name "rom"
                 address 0x0000
@@ -25,7 +25,7 @@ class StartTest < Minitest::Test
         # Run until halt
         instance.continue
 
-        assert_true instance.halted?
+        assert instance.halted?
 
         # Quit
         instance.quit

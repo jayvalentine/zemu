@@ -48,9 +48,19 @@ Z80 * zemu_init(void)
     return instance;
 }
 
+void zemu_free(Z80 * instance)
+{
+    free(instance);
+}
+
 void zemu_power_on(Z80 * instance)
 {
     z80_power(instance, TRUE);
+}
+
+void zemu_power_off(Z80 * instance)
+{
+    z80_power(instance, FALSE);
 }
 
 void zemu_reset(Z80 * instance)

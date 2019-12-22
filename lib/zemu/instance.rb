@@ -18,6 +18,11 @@ module Zemu
             return @wrapper.zemu_debug_halted
         end
 
+        def quit
+            @wrapper.zemu_power_off(@instance)
+            @wrapper.zemu_free(@instance)
+        end
+
         def make_wrapper(configuration)
             wrapper = Module.new
 
@@ -26,7 +31,11 @@ module Zemu
             wrapper.ffi_lib [File.join(configuration.output_directory, "#{configuration.name}.so")]
 
             wrapper.attach_function :zemu_init, [], :pointer
+            wrapper.attach_function :zemu_free, [:pointer], :void
+
             wrapper.attach_function :zemu_power_on, [:pointer], :void
+            wrapper.attach_function :zemu_power_off, [:pointer], :void
+
             wrapper.attach_function :zemu_reset, [:pointer], :void
 
             wrapper.attach_function :zemu_debug_continue, [:pointer], :void
