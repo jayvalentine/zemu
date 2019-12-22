@@ -6,6 +6,8 @@ zusize zemu_debug_continue(Z80 * instance)
 {
     zusize cycles = 0;
 
+    zemu_debug_state = RUNNING;
+
     while (!zemu_debug_halted())
     {
         cycles += zemu_debug_step(instance);

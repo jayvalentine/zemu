@@ -47,3 +47,13 @@ Z80 * zemu_init(void)
     /* Return the now-initialized instance. */
     return instance;
 }
+
+void zemu_power_on(Z80 * instance)
+{
+    z80_power(instance, TRUE);
+}
+
+void zemu_reset(Z80 * instance)
+{
+    z80_reset(instance);
+}
