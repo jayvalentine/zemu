@@ -1,6 +1,7 @@
 require 'erb'
 
 require_relative 'zemu/config'
+require_relative 'zemu/instance'
 
 # Zemu
 #
@@ -70,7 +71,7 @@ module Zemu
     def Zemu::start(configuration)
         build(configuration)
 
-        return nil
+        return Instance.new(configuration)
     end
 
     # Builds a library according to the given configuration.
