@@ -158,12 +158,15 @@ module Zemu
 
         # Parameters accessible by this configuration object.
         def params
-            return %w(name compiler)
+            return %w(name compiler output_directory)
         end
 
         # Initial value for parameters of this configuration object.
         def params_init
-            return { "compiler" => "clang" }
+            return {
+                "compiler" => "clang",
+                "output_directory" => "bin"
+            }
         end
 
         # Constructor.
