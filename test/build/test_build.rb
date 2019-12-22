@@ -10,6 +10,8 @@ module Build
         def test_simple_default
             conf = Zemu::Config.new do
                 name "zemu"
+
+                output_directory BIN
                 
                 add_memory (Zemu::Config::ROM.new do
                     name "rom"
