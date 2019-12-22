@@ -57,5 +57,24 @@ module Config
                 conf.compiler "clang"
             end
         end
+
+        # The default output directory is "bin/" in wherever the current directory is.
+        def test_default_output_dir
+            conf = Zemu::Config.new do
+                name "my_config"
+            end
+
+            assert_equal "bin", conf.output_directory
+        end
+
+        # We can set the output directory.
+        def test_set_output_dir
+            conf = Zemu::Config.new do
+                name "my_config"
+                output_directory "some/directory"
+            end
+
+            assert_equal "some/directory", conf.output_directory
+        end
     end
 end
