@@ -87,7 +87,9 @@ module Zemu
         inputs = [
             "main.c",                       # main library functionality
             "debug.c",                      # debug functionality
-            "autogen/memory.c",                     # memory modules defined in config
+            "io.c",                         # IO functionality
+            "interrupt.c",                  # interrupt functionality
+            "autogen/memory.c",             # memory modules defined in config
             "external/z80/sources/Z80.c"    # z80 core library
         ]
 
