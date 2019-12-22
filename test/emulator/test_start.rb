@@ -2,9 +2,14 @@ require 'minitest/autorun'
 require 'zemu'
 
 class StartTest < Minitest::Test
+    BIN = File.join(__dir__, "..", "..", "bin")
+
     def test_start
         conf = Zemu::Config.new do
             name "zemu"
+
+            output_directory BIN
+            
             add_memory (Zemu::Config::ROM.new do
                 name "rom"
                 address 0x0000
