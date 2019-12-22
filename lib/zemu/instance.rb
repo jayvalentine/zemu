@@ -11,7 +11,7 @@ module Zemu
 
             wrapper.extend FFI::Library
 
-            wrapper.ffi_lib ["#{configuration.name}.so"]
+            wrapper.ffi_lib [File.join(configuration.output_directory, "#{configuration.name}.so")]
 
             wrapper.attach_function :zemu_init, [], :pointer
 
