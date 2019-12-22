@@ -14,6 +14,10 @@ module Zemu
             @wrapper.zemu_debug_continue(@instance)
         end
 
+        def halted?
+            return @wrapper.zemu_debug_halted
+        end
+
         def make_wrapper(configuration)
             wrapper = Module.new
 
@@ -26,6 +30,8 @@ module Zemu
             wrapper.attach_function :zemu_reset, [:pointer], :void
 
             wrapper.attach_function :zemu_debug_continue, [:pointer], :void
+
+            wrapper.attach_function :zemu_debug_halted, [], :bool
 
             return wrapper
         end
