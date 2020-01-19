@@ -58,7 +58,7 @@ class StartTest < Minitest::Test
 
         # Assert that we've hit the breakpoint.
         assert @instance.break?
-        assert_equal 0x0002, @instance.registers.pc
+        assert_equal 0x0002, @instance.registers["PC"]
 
         # Run until halt
         @instance.continue

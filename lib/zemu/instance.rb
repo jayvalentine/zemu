@@ -15,11 +15,12 @@ module Zemu
             @wrapper.zemu_reset(@instance)
         end
 
-        # Returns an [OpenStruct] with the following attributes:
-        # * pc => current program counter value
+        # Returns a hash with the following entries:
+        # * "PC" => current program counter value
         def registers
-            r = OpenStruct.new
-            r.pc = @wrapper.zemu_debug_register(@instance, 0)
+            r = {
+                "PC" => @wrapper.zemu_debug_register(@instance, 0)
+            }
             
             return r
         end
