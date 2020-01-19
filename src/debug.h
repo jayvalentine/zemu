@@ -1,7 +1,5 @@
 #include "emulation/CPU/Z80.h"
 
-#include <stdio.h>
-
 #include "memory.h"
 
 /* Define number of breakpoints, if not done so already. */
