@@ -148,6 +148,12 @@ module Zemu
             end
         end
 
+        # Random-access Memory object
+        #
+        # Represents a block of memory which can be read and written.
+        class RAM < Memory
+        end
+
         # Gets a binding for this object.
         def get_binding
             return binding
