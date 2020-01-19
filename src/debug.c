@@ -1,7 +1,5 @@
 #include "debug.h"
 
-#include <stdio.h>
-
 RunState zemu_debug_state = UNDEFINED;
 
 /* Currently, the number of breakpoints is defined statically.
@@ -83,4 +81,9 @@ zboolean zemu_debug_halted(void)
 zboolean zemu_debug_break(void)
 {
     return (zemu_debug_state == BREAK);
+}
+
+zuint8 zemu_debug_get_memory(zuint16 address)
+{
+    return zemu_memory_peek(address);
 }

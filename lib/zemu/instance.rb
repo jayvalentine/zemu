@@ -25,6 +25,10 @@ module Zemu
             return r
         end
 
+        def memory(address)
+            return @wrapper.zemu_debug_get_memory(address)
+        end
+
         # Continue running this instance until either:
         # * A HALT instruction is executed
         # * A breakpoint is hit
@@ -81,6 +85,8 @@ module Zemu
             wrapper.attach_function :zemu_debug_set_breakpoint, [:uint16], :void
 
             wrapper.attach_function :zemu_debug_register, [:pointer, :uint16], :uint16
+
+            wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
 
             return wrapper
         end

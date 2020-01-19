@@ -1,5 +1,7 @@
 #include "emulation/CPU/Z80.h"
 
+#include "memory.h"
+
 /* Define number of breakpoints, if not done so already. */
 #ifndef ZEMU_DEBUG_MAX_BREAKPOINTS
 #define ZEMU_DEBUG_MAX_BREAKPOINTS 256
