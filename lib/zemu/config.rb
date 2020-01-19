@@ -154,6 +154,22 @@ module Zemu
         class RAM < Memory
         end
 
+        class IOPort < ConfigObject
+            def initialize
+                if self.class == Zemu::Config::IOPort
+                    raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::IOPort."
+                end
+
+                @ports = []
+
+                super
+            end
+
+            def params
+                %w(name address)
+            end
+        end
+
         # Gets a binding for this object.
         def get_binding
             return binding
