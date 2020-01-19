@@ -19,9 +19,20 @@ zusize zemu_debug_continue(Z80 * instance)
 
     zemu_debug_state = RUNNING;
 
-    while (!zemu_debug_halted())
+    while (zemu_debug_state == RUNNING)
     {
         cycles += zemu_debug_step(instance);
+
+        /* See if the Program Counter now matches any address
+         * in the breakpoint array.
+         */
+        for (unsigned int b = 0; b < breakpoint_count; b++)
+        {
+            if (instance->state.pc == breakpoints[b])
+            {
+                zemu_debug_state = BREAK;
+            }
+        }
     }
 
     return cycles;
@@ -47,11 +58,6 @@ void zemu_debug_halt(void * context, zboolean state)
     }
 }
 
-zboolean zemu_debug_halted(void)
-{
-    return (zemu_debug_state == HALTED);
-}
-
 void zemu_debug_set_breakpoint(zuint16 address)
 {
     breakpoints[breakpoint_count] = address;
@@ -67,4 +73,14 @@ zuint16 zemu_debug_register(Z80 * instance, zuint16 r)
         default:
             return 0xFFFF;
     }
+}
+
+zboolean zemu_debug_halted(void)
+{
+    return (zemu_debug_state == HALTED);
+}
+
+zboolean zemu_debug_break(void)
+{
+    return (zemu_debug_state == BREAK);
 }

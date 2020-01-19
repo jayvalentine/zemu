@@ -48,33 +48,22 @@ class StartTest < Minitest::Test
             end)
         end
 
-        puts "Before start"
-
         @instance = Zemu.start(conf)
-
-        puts "Started"
 
         # Set breakpoint on address of third NOP.
         @instance.break 0x0002, :program
 
-        puts "Set breakpoint"
-
         # Run until break
         @instance.continue
 
-        puts "First Continue"
-
+        # Assert that we've hit the breakpoint.
+        assert @instance.break?
         assert_equal 0x0002, @instance.registers.pc
-
-        puts "Assert hit breakpoint"
 
         # Run until halt
         @instance.continue
 
-        puts "Second continue"
-
+        # Assert that we've halted.
         assert @instance.halted?
-
-        puts "Assert halted"
     end
 end

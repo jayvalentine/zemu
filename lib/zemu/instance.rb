@@ -30,6 +30,10 @@ module Zemu
             return @wrapper.zemu_debug_halted
         end
 
+        def break?
+            return @wrapper.zemu_debug_break
+        end
+
         def quit
             @wrapper.zemu_power_off(@instance)
             @wrapper.zemu_free(@instance)
@@ -53,6 +57,7 @@ module Zemu
             wrapper.attach_function :zemu_debug_continue, [:pointer], :void
 
             wrapper.attach_function :zemu_debug_halted, [], :bool
+            wrapper.attach_function :zemu_debug_break, [], :bool
 
             wrapper.attach_function :zemu_debug_set_breakpoint, [:uint16], :void
 

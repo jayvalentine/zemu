@@ -9,6 +9,7 @@ typedef enum RunState
 {
     RUNNING,
     HALTED,
+    BREAK,
     UNDEFINED
 } RunState;
 
@@ -21,3 +22,5 @@ void zemu_debug_halt(void * context, zboolean state);
 zboolean zemu_debug_halted(void);
 
 void zemu_debug_set_breakpoint(zuint16 address);
+
+zuint16 zemu_debug_register(Z80 * instance, zuint16 r);
