@@ -155,6 +155,8 @@ module Zemu
         end
 
         class IOPort < ConfigObject
+            attr_reader :io_type
+
             def initialize
                 if self.class == Zemu::Config::IOPort
                     raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::IOPort."
@@ -166,7 +168,19 @@ module Zemu
             end
 
             def params
-                %w(name address)
+                %w(name)
+            end
+        end
+        
+        class SerialPort < IOPort
+            def initialize
+                super
+            
+                @type = :serial
+            end
+
+            def params
+                super + %w(in_port out_port)
             end
         end
 
