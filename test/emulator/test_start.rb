@@ -106,16 +106,16 @@ class StartTest < Minitest::Test
         @instance.continue
 
         # At this point we expect the value in memory to be 0.
-        assert_equal @instance.memory(0x2004), 0x00
+        assert_equal 0x00, @instance.memory(0x2004)
 
         @instance.continue
 
         # At this point we expect to have written to memory.
-        assert_equal @instance.memory(0x2004), 0xa5
+        assert_equal 0xa5, @instance.memory(0x2004)
 
         @instance.continue
 
         # At this point we expect to have loaded the value from memory.
-        assert_equal @instance.registers["B"], 0xa5
+        assert_equal 0xa5, @instance.registers["B"]
     end
 end
