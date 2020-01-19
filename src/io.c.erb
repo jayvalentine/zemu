@@ -2,17 +2,38 @@
 
 <% io.each do |device| %>
 <% if device.io_type == :serial %>
-SerialBuffer io_serial_<%= device.name %> = { .head = 0, .tail = 0 };
+/* Buffer to which the master pushes data, slave pulls. */
+SerialBuffer io_serial_buffer_master = { .head = 0, .tail = 0 };
+
+/* Buffer to which the slave pushes data, master pulls. */
+SerialBuffer io_serial_buffer_slave = { .head = 0, .tail = 0 };
 <% end %>
 <% end %>
 
-zuint8 zemu_io_serial_get(SerialBuffer * buffer)
+zuint8 zemu_io_serial_slave_gets(void)
 {
-    zuint8 val = buffer->buffer[buffer->head];
-    buffer->head++;
-    if (buffer->head >= ZEMU_IO_SERIAL_BUFFER_SIZE) buffer->head = 0;
+<% unless io.empty? %>
+    zuint8 val = io_serial_buffer_master.buffer[io_serial_buffer_master.head];
+    io_serial_buffer_master.head++;
+
+    if (io_serial_buffer_master.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)
+        io_serial_buffer_master.head = 0;
 
     return val;
+<% else %>
+    return 0;
+<% end %>
+}
+
+void zemu_io_serial_master_puts(zuint8 val)
+{
+<% unless io.empty? %>
+    io_serial_buffer_master.buffer[io_serial_buffer_master.tail] = val;
+    io_serial_buffer_master.tail++;
+
+    if (io_serial_buffer_master.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)
+        io_serial_buffer_master.tail = 0;
+<% end %>
 }
 
 zuint8 zemu_io_in(void * context, zuint16 port)
@@ -26,7 +47,7 @@ zuint8 zemu_io_in(void * context, zuint16 port)
 <% if device.io_type == :serial %>
     if (port == <%= device.in_port %>)
     {
-        return zemu_io_serial_get(&io_serial_<%= device.name %>);
+        return zemu_io_serial_slave_gets();
     }
 <% end %>
 <% end %>

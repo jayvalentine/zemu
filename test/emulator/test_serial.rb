@@ -45,6 +45,8 @@ class StartTest < Minitest::Test
 
         @instance = Zemu.start(conf)
 
+        @instance.serial_puts "Hello"
+
         # Run until halt
         @instance.continue
 

@@ -38,6 +38,8 @@ module Zemu
         def initialize(configuration)
             @wrapper = make_wrapper(configuration)
 
+            @serial = []
+
             @instance = @wrapper.zemu_init
             @wrapper.zemu_power_on(@instance)
             @wrapper.zemu_reset(@instance)
@@ -57,6 +59,12 @@ module Zemu
 
         def memory(address)
             return @wrapper.zemu_debug_get_memory(address)
+        end
+
+        def serial_puts(string)
+            string.each_char do |c|
+                @wrapper.zemu_io_serial_master_puts(c.ord)
+            end
         end
 
         # Continue running this instance until either:
@@ -117,6 +125,8 @@ module Zemu
             wrapper.attach_function :zemu_debug_register, [:pointer, :uint16], :uint16
 
             wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
+
+            wrapper.attach_function :zemu_io_serial_master_puts, [:uint8], :void
 
             return wrapper
         end
