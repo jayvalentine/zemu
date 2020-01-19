@@ -82,6 +82,8 @@ module Zemu
 
         output = File.join(configuration.output_directory, "#{configuration.name}.so")
 
+        autogen = File.join(configuration.output_directory, "autogen_#{configuration.name}")
+
         compiler = configuration.compiler
 
         inputs = [
@@ -89,11 +91,12 @@ module Zemu
             "debug.c",                      # debug functionality
             "io.c",                         # IO functionality
             "interrupt.c",                  # interrupt functionality
-            "autogen/memory.c",             # memory modules defined in config
             "external/z80/sources/Z80.c"    # z80 core library
         ]
 
         inputs_str = inputs.map { |i| File.join(SRC, i) }.join(" ")
+
+        inputs_str += " " + File.join(autogen, "memory.c")
 
         defines = {
             "CPU_Z80_STATIC" => 1,
@@ -103,7 +106,6 @@ module Zemu
         defines_str = defines.map { |d, v| "-D#{d}=#{v}" }.join(" ")
 
         includes = [
-            "autogen",
             "external/Z/API",
             "external/z80/API",
             "external/z80/API/emulation/CPU",
@@ -112,8 +114,10 @@ module Zemu
 
         includes_str = includes.map { |i| "-I#{File.join(SRC, i)}" }.join(" ")
 
-        command = "#{compiler} -Werror -Wno-unknown-warning-option -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{includes_str} #{defines_str} -o #{output} #{inputs_str}"
+        includes_str += " -I" + autogen
 
+        command = "#{compiler} -Werror -Wno-unknown-warning-option -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{includes_str} #{defines_str} -o #{output} #{inputs_str}"
+        
         # Run the compiler and generate a library.
         return system(command)
     end
@@ -130,10 +134,16 @@ module Zemu
         header_template = ERB.new File.read(File.join(SRC, "memory.h.erb"))
         source_template = ERB.new File.read(File.join(SRC, "memory.c.erb"))
 
-        File.write(File.join(SRC, "autogen", "memory.h"),
+        autogen = File.join(configuration.output_directory, "autogen_#{configuration.name}")
+
+        unless Dir.exist? autogen
+            Dir.mkdir autogen
+        end
+
+        File.write(File.join(autogen, "memory.h"),
                    header_template.result(configuration.get_binding))
 
-        File.write(File.join(SRC, "autogen", "memory.c"),
+        File.write(File.join(autogen, "memory.c"),
                    source_template.result(configuration.get_binding))
     end
 end
