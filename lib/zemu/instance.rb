@@ -7,6 +7,34 @@ module Zemu
     # Provides methods by which the state of the emulator can be observed
     # and the execution of the program controlled.
     class Instance
+        REGISTERS = {
+            # Special purpose registers
+            "PC" => 0,
+            "SP" => 1,
+            "IY" => 2,
+            "IX" => 3,
+
+            # Main register set
+            "A" => 4,
+            "F" => 5,
+            "B" => 6,
+            "C" => 7,
+            "D" => 8,
+            "E" => 9,
+            "H" => 10,
+            "L" => 11,
+
+            # Alternate register set
+            "A'" => 12,
+            "F'" => 13,
+            "B'" => 14,
+            "C'" => 15,
+            "D'" => 16,
+            "E'" => 17,
+            "H'" => 18,
+            "L'" => 19
+        }
+
         def initialize(configuration)
             @wrapper = make_wrapper(configuration)
 
@@ -18,9 +46,11 @@ module Zemu
         # Returns a hash with the following entries:
         # * "PC" => current program counter value
         def registers
-            r = {
-                "PC" => @wrapper.zemu_debug_register(@instance, 0)
-            }
+            r = {}
+
+            REGISTERS.each do |reg, num|
+                r[reg] = @wrapper.zemu_debug_register(@instance, num)
+            end
             
             return r
         end
