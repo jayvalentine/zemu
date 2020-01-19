@@ -176,7 +176,7 @@ module Zemu
             def initialize
                 super
             
-                @type = :serial
+                @io_type = :serial
             end
 
             def params
