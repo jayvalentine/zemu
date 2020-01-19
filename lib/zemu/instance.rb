@@ -14,6 +14,10 @@ module Zemu
             @wrapper.zemu_debug_continue(@instance)
         end
 
+        def break(address, type)
+            @wrapper.zemu_debug_set_breakpoint(address)
+        end
+
         def halted?
             return @wrapper.zemu_debug_halted
         end
@@ -41,6 +45,8 @@ module Zemu
             wrapper.attach_function :zemu_debug_continue, [:pointer], :void
 
             wrapper.attach_function :zemu_debug_halted, [], :bool
+
+            wrapper.attach_function :zemu_debug_set_breakpoint, [:uint16], :void
 
             return wrapper
         end

@@ -44,26 +44,37 @@ class StartTest < Minitest::Test
                 size 0x1000
                 
                 # 3 NOPs and then a HALT
-                [0x00, 0x00, 0x00, 0x76]
+                contents [0x00, 0x00, 0x00, 0x76]
             end)
         end
 
+        puts "Before start"
+
         @instance = Zemu.start(conf)
+
+        puts "Started"
 
         # Set breakpoint on address of third NOP.
         @instance.break 0x0002, :program
 
+        puts "Set breakpoint"
+
         # Run until break
         @instance.continue
 
+        puts "First Continue"
+
         assert_equal 0x0002, @instance.registers["PC"]
+
+        puts "Assert hit breakpoint"
 
         # Run until halt
         @instance.continue
 
+        puts "Second continue"
+
         assert @instance.halted?
 
-        # Quit
-        @instance.quit
+        puts "Assert halted"
     end
 end
