@@ -192,6 +192,9 @@ module Zemu
         # The memory sections of this configuration object.
         attr_reader :memory
 
+        # The IO devices of this configuration object.
+        attr_reader :io
+
         # Parameters accessible by this configuration object.
         def params
             return %w(name compiler output_directory)
@@ -228,6 +231,7 @@ module Zemu
         # @raise [Zemu::ConfigError] Raised if the +name+ parameter is not set, or contains whitespace.
         def initialize
             @memory = []
+            @io = []
 
             super
 
@@ -245,6 +249,13 @@ module Zemu
         # @param [Zemu::Config::Memory] mem The memory object to add.
         def add_memory(mem)
             @memory << mem
+        end
+
+        # Adds a new IO device to this configuration.
+        #
+        # @param [Zemu::Config::IOPort] io The IO device to add.
+        def add_io(io)
+            @io << io
         end
     end
 

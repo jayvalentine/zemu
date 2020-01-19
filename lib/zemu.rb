@@ -89,14 +89,13 @@ module Zemu
         inputs = [
             "main.c",                       # main library functionality
             "debug.c",                      # debug functionality
-            "io.c",                         # IO functionality
             "interrupt.c",                  # interrupt functionality
             "external/z80/sources/Z80.c"    # z80 core library
         ]
 
         inputs_str = inputs.map { |i| File.join(SRC, i) }.join(" ")
 
-        inputs_str += " " + File.join(autogen, "memory.c")
+        inputs_str += " " + File.join(autogen, "memory.c") + " " + File.join(autogen, "io.c")
 
         defines = {
             "CPU_Z80_STATIC" => 1,
@@ -127,6 +126,7 @@ module Zemu
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
     def Zemu::generate(configuration)
         generate_memory(configuration)
+        generate_io(configuration)
     end
 
     # Generates the memory.c and memory.h files for a given configuration.
@@ -144,6 +144,24 @@ module Zemu
                    header_template.result(configuration.get_binding))
 
         File.write(File.join(autogen, "memory.c"),
+                   source_template.result(configuration.get_binding))
+    end
+
+    # Generates the io.c and io.h files for a given configuration.
+    def Zemu::generate_io(configuration)
+        header_template = ERB.new File.read(File.join(SRC, "io.h.erb"))
+        source_template = ERB.new File.read(File.join(SRC, "io.c.erb"))
+
+        autogen = File.join(configuration.output_directory, "autogen_#{configuration.name}")
+
+        unless Dir.exist? autogen
+            Dir.mkdir autogen
+        end
+
+        File.write(File.join(autogen, "io.h"),
+                   header_template.result(configuration.get_binding))
+
+        File.write(File.join(autogen, "io.c"),
                    source_template.result(configuration.get_binding))
     end
 end
