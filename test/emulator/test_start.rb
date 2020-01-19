@@ -64,7 +64,7 @@ class StartTest < Minitest::Test
 
         puts "First Continue"
 
-        assert_equal 0x0002, @instance.registers["PC"]
+        assert_equal 0x0002, @instance.registers.pc
 
         puts "Assert hit breakpoint"
 

@@ -57,3 +57,14 @@ void zemu_debug_set_breakpoint(zuint16 address)
     breakpoints[breakpoint_count] = address;
     breakpoint_count++;
 }
+
+zuint16 zemu_debug_register(Z80 * instance, zuint16 r)
+{
+    switch (r)
+    {
+        case 0:
+            return instance->state.pc;
+        default:
+            return 0xFFFF;
+    }
+}

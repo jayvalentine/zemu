@@ -1,4 +1,5 @@
 require 'ffi'
+require 'ostruct'
 
 module Zemu
     class Instance
@@ -8,6 +9,13 @@ module Zemu
             @instance = @wrapper.zemu_init
             @wrapper.zemu_power_on(@instance)
             @wrapper.zemu_reset(@instance)
+        end
+
+        def registers
+            r = OpenStruct.new
+            r.pc = @wrapper.zemu_debug_register(@instance, 0)
+            
+            return r
         end
 
         def continue
@@ -47,6 +55,8 @@ module Zemu
             wrapper.attach_function :zemu_debug_halted, [], :bool
 
             wrapper.attach_function :zemu_debug_set_breakpoint, [:uint16], :void
+
+            wrapper.attach_function :zemu_debug_register, [:pointer, :uint16], :uint16
 
             return wrapper
         end
