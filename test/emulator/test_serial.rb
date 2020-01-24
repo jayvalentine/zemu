@@ -60,7 +60,7 @@ class StartTest < Minitest::Test
         assert_equal 0x6f, @instance.memory(0x2004)
     end
 
-    def test_read
+    def test_write
         conf = Zemu::Config.new do
             name "zemu_write"
 
@@ -106,6 +106,6 @@ class StartTest < Minitest::Test
 
         assert @instance.halted?
 
-        assert_equal "Hello", @instance.serial_gets
+        assert_equal "Hello", @instance.serial_gets(5)
     end
 end

@@ -67,6 +67,15 @@ module Zemu
             end
         end
 
+        def serial_gets(count)
+            return_string = ""
+            count.to_i.times do
+                return_string += @wrapper.zemu_io_serial_master_gets().chr
+            end
+
+            return return_string
+        end
+
         # Continue running this instance until either:
         # * A HALT instruction is executed
         # * A breakpoint is hit
@@ -127,6 +136,7 @@ module Zemu
             wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
 
             wrapper.attach_function :zemu_io_serial_master_puts, [:uint8], :void
+            wrapper.attach_function :zemu_io_serial_master_gets, [:void], :uint8
 
             return wrapper
         end
