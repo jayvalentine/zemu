@@ -5,6 +5,8 @@ require 'yard'
 # The location of this rakefile.
 HERE = __dir__
 
+task :test => 'test:all'
+
 namespace :test do
     desc "Run config tests"
     Rake::TestTask.new :config do |t|
