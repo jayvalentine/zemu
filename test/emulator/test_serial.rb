@@ -1,7 +1,7 @@
 require 'minitest/autorun'
 require 'zemu'
 
-class StartTest < Minitest::Test
+class SerialTest < Minitest::Test
     BIN = File.join(__dir__, "..", "..", "bin")
 
     def teardown
