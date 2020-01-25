@@ -67,8 +67,13 @@ module Zemu
             end
         end
 
-        def serial_gets(count)
+        def serial_gets(count=nil)
             return_string = ""
+
+            if count.nil?
+                count = @wrapper.zemu_io_serial_buffer_size()
+            end
+
             count.to_i.times do
                 return_string += @wrapper.zemu_io_serial_master_gets().chr
             end
@@ -137,6 +142,7 @@ module Zemu
 
             wrapper.attach_function :zemu_io_serial_master_puts, [:uint8], :void
             wrapper.attach_function :zemu_io_serial_master_gets, [], :uint8
+            wrapper.attach_function :zemu_io_serial_buffer_size, [], :uint64
 
             return wrapper
         end

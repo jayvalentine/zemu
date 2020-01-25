@@ -10,6 +10,23 @@ SerialBuffer io_serial_buffer_slave = { .head = 0, .tail = 0 };
 <% end %>
 <% end %>
 
+zusize zemu_io_serial_buffer_size(void)
+{
+<% unless io.empty? %>
+    zusize start = io_serial_buffer_slave.head;
+    zusize end = io_serial_buffer_slave.tail;
+
+    if (end < start)
+    {
+        end += ZEMU_IO_SERIAL_BUFFER_SIZE;
+    }
+
+    return end - start;
+<% else %>
+    return 0;
+<% end %>
+}
+
 void zemu_io_serial_slave_puts(zuint8 val)
 {
 <% unless io.empty? %>
