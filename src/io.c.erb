@@ -36,6 +36,21 @@ void zemu_io_serial_master_puts(zuint8 val)
 <% end %>
 }
 
+zuint8 zemu_io_serial_master_gets(void)
+{
+<% unless io.empty? %>
+    zuint8 val = io_serial_buffer_slave.buffer[io_serial_buffer_slave.head];
+    io_serial_buffer_slave.head++;
+
+    if (io_serial_buffer_slave.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)
+        io_serial_buffer_slave.head = 0;
+
+    return val;
+<% else %>
+    return 0;
+<% end %>
+}
+
 zuint8 zemu_io_in(void * context, zuint16 port)
 {
     /* Z80 IO ports occupy the lower half of the address bus.

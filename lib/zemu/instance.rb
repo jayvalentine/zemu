@@ -136,7 +136,7 @@ module Zemu
             wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
 
             wrapper.attach_function :zemu_io_serial_master_puts, [:uint8], :void
-            wrapper.attach_function :zemu_io_serial_master_gets, [:void], :uint8
+            wrapper.attach_function :zemu_io_serial_master_gets, [], :uint8
 
             return wrapper
         end
