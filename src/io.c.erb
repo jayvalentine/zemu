@@ -10,6 +10,17 @@ SerialBuffer io_serial_buffer_slave = { .head = 0, .tail = 0 };
 <% end %>
 <% end %>
 
+void zemu_io_serial_slave_puts(zuint8 val)
+{
+<% unless io.empty? %>
+    io_serial_buffer_slave.buffer[io_serial_buffer_slave.tail] = val;
+    io_serial_buffer_slave.tail++;
+
+    if (io_serial_buffer_slave.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)
+        io_serial_buffer_slave.tail = 0;
+<% end %>
+}
+
 zuint8 zemu_io_serial_slave_gets(void)
 {
 <% unless io.empty? %>
@@ -71,5 +82,17 @@ zuint8 zemu_io_in(void * context, zuint16 port)
 
 void zemu_io_out(void * context, zuint16 port, zuint8 value)
 {
-    
+    /* Z80 IO ports occupy the lower half of the address bus.
+     * We cannot assume that the top half is valid.
+     */
+    port &= 0x00FF;
+
+<% io.each do |device| %>
+<% if device.io_type == :serial %>
+    if (port == <%= device.out_port %>)
+    {
+        zemu_io_serial_slave_puts(value);
+    }
+<% end %>
+<% end %>
 }
