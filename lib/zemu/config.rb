@@ -154,9 +154,15 @@ module Zemu
         class RAM < Memory
         end
 
+        # Input/Output Port object
+        #
+        # Represents an input/output device assigned to one or more ports.
         class IOPort < ConfigObject
             attr_reader :io_type
 
+            # Constructor.
+            #
+            # Do not use, as this is an abstract class. Use one of the subclasses instead.
             def initialize
                 if self.class == Zemu::Config::IOPort
                     raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::IOPort."
@@ -167,18 +173,44 @@ module Zemu
                 super
             end
 
+            # Valid parameters for this object.
+            # Should be extended by subclasses but NOT REPLACED.
             def params
                 %w(name)
             end
         end
         
+        # Serial Input/Output object
+        #
+        # Represents a serial connection between the emulated CPU
+        # and the host machine, with input and output mapped to Z80 I/O
+        # ports.
         class SerialPort < IOPort
+            # Constructor.
+            #
+            # Takes a block in which the parameters of the serial port
+            # can be initialized.
+            #
+            # All parameters can be set within this block.
+            # They become readonly as soon as the block completes.
+            #
+            # @example
+            #   
+            #   Zemu::Config::SerialPort.new do
+            #       name "serial"
+            #       in_port 0x00
+            #       out_port 0x01
+            #   end
+            #
+            #
             def initialize
                 super
             
                 @io_type = :serial
             end
 
+            # Valid parameters for a SerialPort, along with those
+            # defined in [Zemu::Config::IOPort].
             def params
                 super + %w(in_port out_port)
             end

@@ -7,6 +7,8 @@ module Zemu
     # Provides methods by which the state of the emulator can be observed
     # and the execution of the program controlled.
     class Instance
+        # Mapping of register names to the ID numbers used to identify them
+        # by the debug functionality of the built library.
         REGISTERS = {
             # Special purpose registers
             "PC" => 0,
@@ -45,8 +47,12 @@ module Zemu
             @wrapper.zemu_reset(@instance)
         end
 
-        # Returns a hash with the following entries:
-        # * "PC" => current program counter value
+        # Returns a hash containing current values of the emulated
+        # machine's registers. All names are as those given in the Z80
+        # reference manual.
+        #
+        # 16-bit general-purpose registers must be accessed by their 8-bit
+        # component registers.
         def registers
             r = {}
 
@@ -57,16 +63,37 @@ module Zemu
             return r
         end
 
+        # Access the value in memory at a given address.
+        #
+        # @param address The address in memory to be accessed.
+        #
+        # Returns 0 if the memory address is not mapped, otherwise
+        # returns the value in the given memory location.
         def memory(address)
             return @wrapper.zemu_debug_get_memory(address)
         end
 
+        # Write a string to the serial line of the emulated CPU.
+        #
+        # @param string The string to be sent.
+        #
+        # Sends each character in the string to the receive buffer of the
+        # emulated machine.
         def serial_puts(string)
             string.each_char do |c|
                 @wrapper.zemu_io_serial_master_puts(c.ord)
             end
         end
 
+        # Get a number of characters from the serial line of the emulated CPU.
+        #
+        # @param count The number of characters to get, or nil if all characters in the buffer
+        #              should be retrieved.
+        #
+        # Gets the given number of characters from the emulated machine's send buffer.
+        #
+        # Note: If count is greater than the number of characters currently in the buffer,
+        # the returned string may have invalid characters appended to the end.
         def serial_gets(count=nil)
             return_string = ""
 
