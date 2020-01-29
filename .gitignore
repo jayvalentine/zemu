@@ -16,3 +16,6 @@ bin/
 
 # Ignore VSCode stuff.
 .vscode/
+
+# Built gems.
+*.gem
