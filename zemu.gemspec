@@ -1,7 +1,7 @@
 HERE = __dir__
 
 MAJOR = 0
-MINOR = 0
+MINOR = 1
 REFRESH = 0
 
 Gem::Specification.new do |s|
