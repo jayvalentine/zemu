@@ -1,5 +1,9 @@
 HERE = __dir__
 
+MAJOR = 0
+MINOR = 0
+REFRESH = 0
+
 Gem::Specification.new do |s|
     # This stuff will always be the same.
     s.name = 'zemu'
@@ -10,7 +14,7 @@ Gem::Specification.new do |s|
     s.email = 'jayv136@gmail.com'
 
     # This changes per-version.
-    s.version = '0.0.0'
+    s.version = "#{MAJOR}.#{MINOR}.#{REFRESH}"
     s.date = Time.now.strftime("%Y-%m-%d")
 
     # If new directories not covered here are added,
