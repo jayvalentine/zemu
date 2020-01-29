@@ -117,6 +117,18 @@ module Zemu
             def params
                 return %w(name address size)
             end
+
+            # Reads the contents of a file in binary format and
+            # returns them as an array.
+            def from_binary(file)
+                return File.open(file, "rb") do |f|
+                    bin = []
+
+                    f.each_byte { |b| bin << b }
+
+                    bin
+                end
+            end
         end
 
         # Read-Only Memory object
