@@ -27,6 +27,8 @@ namespace :test do
     Rake::TestTask.new :all => [:config, :build, :emulator]
 end
 
+task :docs => 'docs:build'
+
 namespace :docs do
     desc "Generate documentation"
     task :build do
@@ -44,5 +46,32 @@ namespace :docs do
     desc "View documentation"
     task :view => :build do
         system "firefox #{File.join(HERE, "doc", "index.html")}"
+    end
+end
+
+namespace :release do
+    desc "Release checklist"
+    task :check => [:docs, :test]
+
+    desc "Release a minor version"
+    task :minor => :check do
+        gemspec = File.read(File.join(HERE, "zemu.gemspec"))
+
+        minor = 0
+
+        # Get the current minor version.
+        m = gemspec.match(/MINOR = (\d+)/)
+        if m.nil?
+            abort("Could not determine minor version.")
+        else
+            minor = m[1].to_i
+        end
+
+        # Bump by 1.
+        minor += 1
+
+        gemspec.gsub!(/MINOR = \d+/, "MINOR = #{minor}")
+
+        File.write("zemu.gemspec", gemspec)
     end
 end
