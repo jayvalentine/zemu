@@ -102,11 +102,11 @@ module Config
         def test_initial_val_from_bin
             # Create the binary file.
             File.open(File.join(BIN, "app.bin"), "wb") do |f|
-                f.puts "\x01"
-                f.puts "\xaa"
-                f.puts "\x12"
-                f.puts "\x42"
-                f.puts "\xde"
+                f.write "\x01"
+                f.write "\xaa"
+                f.write "\x12"
+                f.write "\x42"
+                f.write "\xde"
             end
 
             mem = Zemu::Config::ROM.new do
