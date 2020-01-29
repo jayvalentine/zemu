@@ -4,6 +4,8 @@ require 'zemu'
 module Config
     # Tests memory configuration objects.
     class MemoryTest < Minitest::Test
+        BIN = File.join(__dir__, "..", "..", "bin")
+
         # We should not be able to create an instance of the abstract memory class.
         def test_no_initialize_abstract
             e = assert_raises NotImplementedError do
@@ -92,6 +94,32 @@ module Config
             assert_equal 0x1000, mem.contents.size
             assert_equal [0, 255, 100, 20, 42, 1, 254], mem.contents[0..6]
             mem.contents[7..-1].each do |b|
+                assert_equal 0x00, b
+            end
+        end
+
+        # A ROM object can be initialized from a binary file.
+        def test_initial_val_from_bin
+            # Create the binary file.
+            File.open(File.join(BIN, "app.bin"), "wb") do |f|
+                f.puts "\x01"
+                f.puts "\xaa"
+                f.puts "\x12"
+                f.puts "\x42"
+                f.puts "\xde"
+            end
+
+            mem = Zemu::Config::ROM.new do
+                name "my_rom"
+                address 0x8000
+                size 0x1000
+
+                contents from_binary(File.join(BIN, "app.bin"))
+            end
+
+            assert_equal 0x1000, mem.contents.size
+            assert_equal [0x01, 0xaa, 0x12, 0x42, 0xde], mem.contents[0..4]
+            mem.contents[5..-1].each do |b|
                 assert_equal 0x00, b
             end
         end
