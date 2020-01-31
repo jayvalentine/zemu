@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
     s.authors = ['Jay Valentine']
     s.license = 'GPL-3.0'
     s.email = 'jayv136@gmail.com'
+    s.homepage = 'https://github.com/jayvalentine/zemu'
 
     # This changes per-version.
     s.version = "#{MAJOR}.#{MINOR}.#{REFRESH}"
