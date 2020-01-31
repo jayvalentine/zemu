@@ -3,8 +3,6 @@ require 'erb'
 require_relative 'zemu/config'
 require_relative 'zemu/instance'
 
-# Zemu
-#
 # Zemu is a module providing an interface to build and interact with
 # configurable Z80 emulators.
 #
