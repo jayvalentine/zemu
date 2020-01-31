@@ -2,6 +2,8 @@ require 'rake/testtask'
 require 'rdoc/task'
 require 'yard'
 
+require 'fileutils'
+
 # The location of this rakefile.
 HERE = __dir__
 
@@ -50,11 +52,19 @@ namespace :docs do
 end
 
 namespace :release do
+    def clean_gems
+        Dir.glob("*.gem").each do |gem|
+            FileUtils.rm(gem)
+        end
+    end
+
     desc "Release checklist"
     task :check => [:docs, :test]
 
     desc "Release a minor version"
     task :minor => :check do
+        clean_gems
+
         gemspec = File.read(File.join(HERE, "zemu.gemspec"))
 
         minor = 0
@@ -71,6 +81,36 @@ namespace :release do
         minor += 1
 
         gemspec.gsub!(/MINOR = \d+/, "MINOR = #{minor}")
+
+        # Reset refresh number to 0.
+        gemspec.gsub!(/REFRESH = \d+/, "REFRESH = 0")
+
+        File.write("zemu.gemspec", gemspec)
+
+        # Build the gem.
+        system "gem build zemu.gemspec"
+    end
+
+    desc "Release a refresh version"
+    task :refresh => :check do
+        clean_gems
+
+        gemspec = File.read(File.join(HERE, "zemu.gemspec"))
+
+        refresh = 0
+
+        # Get the current refresh version.
+        m = gemspec.match(/REFRESH = (\d+)/)
+        if m.nil?
+            abort("Could not determine refresh version.")
+        else
+            refresh = m[1].to_i
+        end
+
+        # Bump by 1.
+        refresh += 1
+
+        gemspec.gsub!(/REFRESH = \d+/, "REFRESH = #{refresh}")
 
         File.write("zemu.gemspec", gemspec)
 
