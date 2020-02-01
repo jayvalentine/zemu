@@ -9,7 +9,12 @@ module Zemu
             @instance = instance
 
             @master, @slave = PTY.open
-            STDOUT.puts "Opened PTY at #{@slave.path}"
+            log "Opened PTY at #{@slave.path}"
+        end
+
+        # Logs a message to the user output.
+        def log(message)
+            STDOUT.puts "    " + message
         end
 
         # Close the interactive wrapper
@@ -24,7 +29,7 @@ module Zemu
             quit = false
 
             until quit
-                print "ZEMU > "
+                print "ZEMU> "
                 # Get a command from the user.
                 cmd = STDIN.gets.split
 
@@ -32,17 +37,42 @@ module Zemu
                     quit = true
                 elsif cmd[0] == "continue"
                     continue(cmd[1])
+                elsif cmd[0] == "registers"
+                    registers
                 end
             end
 
             close
         end
 
+        # Outputs a table giving the current values of the instance's registers.
+        def registers
+            log "A:  #{r("A")} F: #{r("F")}"
+            log "B:  #{r("B")} C: #{r("C")}"
+            log "D:  #{r("D")} E: #{r("E")}"
+            log "H:  #{r("H")} L: #{r("L")}"
+            log ""
+            log "IX: #{r16("IX")}"
+            log "IY: #{r16("IY")}"
+            log "SP: #{r16("SP")}"
+            log "PC: #{r16("PC")}"
+        end
+
+        # Returns a particular 8-bit register value.
+        def r(reg)
+            return "0x%02x" % @instance.registers[reg]
+        end
+
+        # Returns a particular 16-bit register value.
+        def r16(reg)
+            return "0x%04x" % @instance.registers[reg]
+        end
+
         # Continue for *up to* the given number of cycles.
         # Fewer cycles may be executed, depending on the behaviour of the processor.
         def continue(cycles_str)
             if cycles_str.nil? || (cycles_str.to_i == 0)
-                STDOUT.puts "Invalid value: #{cycles_str}"
+                log "Invalid value: #{cycles_str}"
                 return
             end
 
@@ -66,7 +96,7 @@ module Zemu
                 actual_cycles += cycles_done
             end
 
-            STDOUT.puts "Executed for #{actual_cycles} cycles."
+            log "Executed for #{actual_cycles} cycles."
         end
 
         # Process serial input/output via the TTY.
@@ -83,12 +113,12 @@ module Zemu
 
             unless input.empty?
                 @instance.serial_puts input
-                STDOUT.puts "Serial in: #{input}"
+                log "Serial in: #{input}"
             end
 
             unless output.empty?
                 @master.write output
-                STDOUT.puts "Serial out: #{output}"
+                log "Serial out: #{output}"
             end
         end
     end
