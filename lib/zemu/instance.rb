@@ -114,8 +114,10 @@ module Zemu
         # * A HALT instruction is executed
         # * A breakpoint is hit
         # * The number of cycles given has been executed
+        #
+        # Returns the number of cycles executed.
         def continue(run_cycles=-1)
-            @wrapper.zemu_debug_continue(@instance, run_cycles)
+            return @wrapper.zemu_debug_continue(@instance, run_cycles)
         end
 
         # Set a breakpoint of the given type at the given address.
@@ -159,7 +161,7 @@ module Zemu
 
             wrapper.attach_function :zemu_reset, [:pointer], :void
 
-            wrapper.attach_function :zemu_debug_continue, [:pointer, :int64], :void
+            wrapper.attach_function :zemu_debug_continue, [:pointer, :int64], :uint64
 
             wrapper.attach_function :zemu_debug_halted, [], :bool
             wrapper.attach_function :zemu_debug_break, [], :bool

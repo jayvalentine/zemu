@@ -4,6 +4,7 @@ require 'pty'
 
 require_relative 'zemu/config'
 require_relative 'zemu/instance'
+require_relative 'zemu/interactive'
 
 # Zemu is a module providing an interface to build and interact with
 # configurable Z80 emulators.
@@ -74,38 +75,8 @@ module Zemu
     def Zemu::start_interactive(configuration)
         instance = start(configuration)
 
-        master, slave = PTY.open
-
-        puts "Opened PTY at #{slave.path}"
-
-        quit = false
-
-        until quit
-            # Read/write serial.
-            # Get the strings to be input/output.
-            input = ""
-            ready = IO.select([master], [], [], 0)
-            unless ready.nil? || ready.empty?
-                input = master.read(1)
-            end
-
-            output = instance.serial_gets(1)
-
-            unless input.empty?
-                instance.serial_puts input
-                puts "Input: #{input}"
-            end
-
-            unless output.empty?
-                master.write output
-                puts "Output: #{output}"
-            end
-            
-            # Continue for 10 cycles (roughly).
-            instance.continue 10
-        end
-
-        instance.quit
+        interactive = InteractiveInstance.new(instance)
+        interactive.run
     end
 
     # Builds a library according to the given configuration.
