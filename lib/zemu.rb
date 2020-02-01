@@ -83,22 +83,26 @@ module Zemu
         until quit
             # Read/write serial.
             # Get the strings to be input/output.
-            input = master.read 1
-            output = instance.serial_gets 1
+            input = ""
+            ready = IO.select([master], [], [], 0)
+            unless ready.nil? || ready.empty?
+                input = master.read(1)
+            end
 
-            # Write them to the respective devices.
-            instance.serial_puts input unless input.nil?
-            master.write output
+            output = instance.serial_gets(1)
+
+            unless input.empty?
+                instance.serial_puts input
+                puts "Input: #{input}"
+            end
+
+            unless output.empty?
+                master.write output
+                puts "Output: #{output}"
+            end
             
             # Continue for 10 cycles (roughly).
             instance.continue 10
-
-            # Get some user input.
-            command = gets
-
-            if command == "quit"
-                quit = true
-            end
         end
 
         instance.quit
