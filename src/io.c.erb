@@ -92,6 +92,18 @@ zuint8 zemu_io_in(void * context, zuint16 port)
     {
         return zemu_io_serial_slave_gets();
     }
+
+    else if (port == <%= device.ready_port %>)
+    {
+        if (io_serial_buffer_master.head == io_serial_buffer_master.tail)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1;
+        }
+    }
 <% end %>
 <% end %>
     return 0;

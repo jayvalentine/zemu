@@ -21,11 +21,13 @@ module Config
                 name "serial"
                 in_port 0x00
                 out_port 0x01
+                ready_port 0x02
             end
 
             assert_equal "serial", serial.name
             assert_equal 0x00, serial.in_port
             assert_equal 0x01, serial.out_port
+            assert_equal 0x02, serial.ready_port
         end
     end
 end

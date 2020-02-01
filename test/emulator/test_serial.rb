@@ -40,6 +40,7 @@ class SerialTest < Minitest::Test
                 name "serial"
                 in_port 0x00
                 out_port 0x01
+                ready_port 0x02
             end)
         end
 
@@ -96,6 +97,7 @@ class SerialTest < Minitest::Test
                 name "serial"
                 in_port 0x00
                 out_port 0x01
+                ready_port 0x02
             end)
         end
 
@@ -145,6 +147,7 @@ class SerialTest < Minitest::Test
                 name "serial"
                 in_port 0x00
                 out_port 0x01
+                ready_port 0x02
             end)
         end
 

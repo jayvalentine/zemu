@@ -224,7 +224,7 @@ module Zemu
             # Valid parameters for a SerialPort, along with those
             # defined in [Zemu::Config::IOPort].
             def params
-                super + %w(in_port out_port)
+                super + %w(in_port out_port ready_port)
             end
         end
 
