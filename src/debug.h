@@ -17,7 +17,7 @@ typedef enum RunState
     UNDEFINED
 } RunState;
 
-zusize zemu_debug_continue(Z80 * instance);
+zusize zemu_debug_continue(Z80 * instance, zinteger run_cycles);
 
 zusize zemu_debug_step(Z80 * instance);
 

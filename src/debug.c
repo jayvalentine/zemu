@@ -8,7 +8,7 @@ RunState zemu_debug_state = UNDEFINED;
 zuint16 breakpoints[ZEMU_DEBUG_MAX_BREAKPOINTS];
 unsigned int breakpoint_count = 0;
 
-zusize zemu_debug_continue(Z80 * instance)
+zusize zemu_debug_continue(Z80 * instance, zinteger run_cycles)
 {
     /* Return if we've halted. */
     if (zemu_debug_state == HALTED) return 0;
@@ -17,7 +17,11 @@ zusize zemu_debug_continue(Z80 * instance)
 
     zemu_debug_state = RUNNING;
 
-    while (zemu_debug_state == RUNNING)
+    /* Run as long as:
+     * We don't hit a breakpoint
+     * We haven't run for more than the number of cycles given
+     */
+    while (zemu_debug_state == RUNNING && (run_cycles < 0 || cycles < run_cycles))
     {
         cycles += zemu_debug_step(instance);
 

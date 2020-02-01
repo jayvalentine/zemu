@@ -1,5 +1,7 @@
 require 'erb'
 
+require 'pty'
+
 require_relative 'zemu/config'
 require_relative 'zemu/instance'
 
@@ -64,6 +66,42 @@ module Zemu
         build(configuration)
 
         return Instance.new(configuration)
+    end
+
+    # Starts an interactive instance of an emulator, according to the given configuration.
+    #
+    # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
+    def Zemu::start_interactive(configuration)
+        instance = start(configuration)
+
+        master, slave = PTY.open
+
+        puts "Opened PTY at #{slave.path}"
+
+        quit = false
+
+        until quit
+            # Read/write serial.
+            # Get the strings to be input/output.
+            input = master.read 1
+            output = instance.serial_gets 1
+
+            # Write them to the respective devices.
+            instance.serial_puts input unless input.nil?
+            master.write output
+            
+            # Continue for 10 cycles (roughly).
+            instance.continue 10
+
+            # Get some user input.
+            command = gets
+
+            if command == "quit"
+                quit = true
+            end
+        end
+
+        instance.quit
     end
 
     # Builds a library according to the given configuration.

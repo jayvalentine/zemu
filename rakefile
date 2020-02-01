@@ -26,7 +26,7 @@ namespace :test do
     end
 
     desc "Run all tests"
-    Rake::TestTask.new :all => [:config, :build, :emulator]
+    task :all => [:config, :build, :emulator]
 end
 
 task :docs => 'docs:build'

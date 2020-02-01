@@ -93,12 +93,14 @@ module Zemu
         # Gets the given number of characters from the emulated machine's send buffer.
         #
         # Note: If count is greater than the number of characters currently in the buffer,
-        # the returned string may have invalid characters appended to the end.
+        # the returned string will be shorter than the given count.
         def serial_gets(count=nil)
             return_string = ""
 
-            if count.nil?
-                count = @wrapper.zemu_io_serial_buffer_size()
+            actual_count = @wrapper.zemu_io_serial_buffer_size()
+
+            if count.nil? || actual_count < count
+                count = actual_count
             end
 
             count.to_i.times do
@@ -111,8 +113,9 @@ module Zemu
         # Continue running this instance until either:
         # * A HALT instruction is executed
         # * A breakpoint is hit
-        def continue
-            @wrapper.zemu_debug_continue(@instance)
+        # * The number of cycles given has been executed
+        def continue(run_cycles=-1)
+            @wrapper.zemu_debug_continue(@instance, run_cycles)
         end
 
         # Set a breakpoint of the given type at the given address.
@@ -156,7 +159,7 @@ module Zemu
 
             wrapper.attach_function :zemu_reset, [:pointer], :void
 
-            wrapper.attach_function :zemu_debug_continue, [:pointer], :void
+            wrapper.attach_function :zemu_debug_continue, [:pointer, :int64], :void
 
             wrapper.attach_function :zemu_debug_halted, [], :bool
             wrapper.attach_function :zemu_debug_break, [], :bool
