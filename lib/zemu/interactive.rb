@@ -36,7 +36,11 @@ module Zemu
                 if cmd[0] == "quit"
                     quit = true
                 elsif cmd[0] == "continue"
-                    continue(cmd[1])
+                    if cmd[1].nil?
+                        continue
+                    else
+                        continue(cmd[1].to_i)
+                    end
                 elsif cmd[0] == "registers"
                     registers
                 end
@@ -70,19 +74,20 @@ module Zemu
 
         # Continue for *up to* the given number of cycles.
         # Fewer cycles may be executed, depending on the behaviour of the processor.
-        def continue(cycles_str)
-            if cycles_str.nil? || (cycles_str.to_i == 0)
-                log "Invalid value: #{cycles_str}"
+        def continue(cycles=-1)
+            if cycles == 0
+                log "Invalid value: #{cycles}"
                 return
             end
 
             # Continue in blocks of 10 cycles,
             # to allow for processing of IO.
-            cycles = cycles_str.to_i
+            cycles_left = cycles
             actual_cycles = 0
+
             done = false
 
-            while (cycles > 0) & !done
+            while ((cycles == -1) || (cycles_left > 0)) & !done
                 process_serial
                 cycles_done = @instance.continue(10)
 
@@ -92,7 +97,7 @@ module Zemu
                     done = true
                 end
 
-                cycles -= cycles_done
+                cycles_left -= cycles_done
                 actual_cycles += cycles_done
             end
 
