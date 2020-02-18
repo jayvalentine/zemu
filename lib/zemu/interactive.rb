@@ -43,6 +43,14 @@ module Zemu
                     end
                 elsif cmd[0] == "registers"
                     registers
+                elsif cmd[0] == "break"
+                    add_breakpoint(cmd[1])
+                elsif cmd[0] == "memory"
+                    if cmd[2].nil?
+                        memory(cmd[1])
+                    else
+                        memory(cmd[1], cmd[2])
+                    end
                 end
             end
 
@@ -102,6 +110,37 @@ module Zemu
             end
 
             log "Executed for #{actual_cycles} cycles."
+
+            if @instance.break?
+                log "Hit breakpoint at #{r16("PC")}."
+            end
+        end
+
+        # Add a breakpoint at the address given by the string.
+        def add_breakpoint(addr_str)
+            @instance.break(addr_str.to_i(16), :program)
+        end
+
+        # Dump an amount of memory.
+        def memory(address, size="1")
+            if address.nil?
+                log "Expected an address, got #{address}."
+                return
+            end
+
+            if (address.to_i(16) < 1 || address.to_i(16) > 0xffff)
+                log "Invalid address: 0x%04x" % address.to_i(16)
+                return
+            end
+            
+            (address.to_i(16)...address.to_i(16) + size.to_i(16)).each do |a|
+                m = @instance.memory(a)
+                if (m < 32)
+                    log "%04x: %02x    ." % [a, m]
+                else
+                    log ("%04x: %02x    " % [a, m]) + m.chr("UTF-8")
+                end
+            end
         end
 
         # Process serial input/output via the TTY.
