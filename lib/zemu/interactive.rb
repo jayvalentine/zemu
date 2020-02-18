@@ -35,22 +35,30 @@ module Zemu
 
                 if cmd[0] == "quit"
                     quit = true
+
                 elsif cmd[0] == "continue"
                     if cmd[1].nil?
                         continue
                     else
                         continue(cmd[1].to_i)
                     end
+
+                elsif cmd[0] == "step"
+                    continue(1)
+
                 elsif cmd[0] == "registers"
                     registers
+
                 elsif cmd[0] == "break"
                     add_breakpoint(cmd[1])
+
                 elsif cmd[0] == "memory"
                     if cmd[2].nil?
                         memory(cmd[1])
                     else
                         memory(cmd[1], cmd[2])
                     end
+
                 elsif cmd[0] == "help"
                     log "Available commands:"
                     log "    continue [<n>]     - Continue execution for <n> cycles"
@@ -60,8 +68,10 @@ module Zemu
                     log "                         <n> defaults to 1 if omitted."
                     log "    break  <a>         - Set a breakpoint at the given address <a>."
                     log "    quit               - End this emulator instance."
+
                 else
                     log "Invalid command. Type 'help' for available commands."
+                    
                 end
             end
 
@@ -99,32 +109,30 @@ module Zemu
                 return
             end
 
-            # Continue in blocks of 10 cycles,
-            # to allow for processing of IO.
+            # Continue executing instruction-by-instruction.
+            # Process IO in-between.
             cycles_left = cycles
             actual_cycles = 0
 
-            done = false
+            while ((cycles == -1) || (cycles_left > 0))
+                old_pc = r16("PC")
 
-            while ((cycles == -1) || (cycles_left > 0)) & !done
                 process_serial
-                cycles_done = @instance.continue(10)
-
-                # If we ever execute fewer than 10 cycles it means
-                # that something has happened, either a halt or a breakpoint.
-                if cycles_done < 10
-                    done = true
-                end
-
+                cycles_done = @instance.continue(1)
                 cycles_left -= cycles_done
                 actual_cycles += cycles_done
+
+                # Have we hit a breakpoint or HALT instruction?
+                if @instance.break?
+                    log "Hit breakpoint at #{r16("PC")}."
+                    break
+                elsif @instance.halted?
+                    log "Executed HALT instruction at #{old_pc}."
+                    break
+                end
             end
 
             log "Executed for #{actual_cycles} cycles."
-
-            if @instance.break?
-                log "Hit breakpoint at #{r16("PC")}."
-            end
         end
 
         # Add a breakpoint at the address given by the string.
