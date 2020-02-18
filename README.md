@@ -65,6 +65,15 @@ instance.quit
 An interactive mode is also provided, which gives a command-line interface to the emulated
 machine.
 
+## Documentation
+
+Where possible, code examples have been given to show how the various configuration options can be used.
+In addition, API documentation should be complete enough to indicate how to construct a configuration.
+
+If this is not the case, please let me know!
+
+Documentation for the gem can be found [here](https://www.rubydoc.info/gems/zemu).
+
 ## Compatibility
 
 Zemu has currently only been tested with one OS (Linux) and one compiler (clang), so compatibility with
