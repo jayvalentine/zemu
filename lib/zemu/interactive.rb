@@ -51,6 +51,17 @@ module Zemu
                     else
                         memory(cmd[1], cmd[2])
                     end
+                elsif cmd[0] == "help"
+                    log "Available commands:"
+                    log "    continue [<n>]     - Continue execution for <n> cycles"
+                    log "    step               - Step over a single instruction"
+                    log "    registers          - View register contents"
+                    log "    memory <a> [<n>]   - View <n> bytes of memory, starting at address <a>."
+                    log "                         <n> defaults to 1 if omitted."
+                    log "    break  <a>         - Set a breakpoint at the given address <a>."
+                    log "    quit               - End this emulator instance."
+                else
+                    log "Invalid command. Type 'help' for available commands."
                 end
             end
 
