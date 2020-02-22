@@ -2,7 +2,7 @@ HERE = __dir__
 
 MAJOR = 0
 MINOR = 2
-REFRESH = 0
+REFRESH = 1
 
 DESCRIPTION = <<-eos
     Zemu is a gem which allows the user to configure a Z80-based system
