@@ -31,5 +31,15 @@ module Config
             assert_equal 0x8000, conf.memory[0].address
             assert_equal 0x1000, conf.memory[0].size
         end
+
+        # A configuration can be given a clock speed in Hz.
+        def test_clock_speed
+            conf = Zemu::Config.new do
+                name "my_config"
+                clock_speed 1_000_000 # 1 MHz.
+            end
+
+            assert_equal 1_000_000, conf.clock_speed
+        end
     end
 end
