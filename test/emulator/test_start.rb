@@ -118,4 +118,18 @@ class StartTest < Minitest::Test
         # At this point we expect to have loaded the value from memory.
         assert_equal 0xa5, @instance.registers["B"]
     end
+
+    def test_clock_speed
+        conf = Zemu::Config.new do
+            name "zemu_clock_speed"
+
+            output_directory BIN
+
+            clock_speed 8_000_000
+        end
+
+        @instance = Zemu.start(conf)
+
+        assert_equal 8_000_000, @instance.clock_speed
+    end
 end
