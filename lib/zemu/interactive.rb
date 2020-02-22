@@ -134,7 +134,7 @@ module Zemu
 
                     execution_time = actual_cycles * (1/@instance.clock_speed)
                     padding = execution_time - elapsed
-                    sleep(padding)
+                    sleep(padding) unless padding < 0
                 end
 
                 # Have we hit a breakpoint or HALT instruction?
