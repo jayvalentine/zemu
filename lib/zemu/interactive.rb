@@ -115,12 +115,27 @@ module Zemu
             actual_cycles = 0
 
             while ((cycles == -1) || (cycles_left > 0))
+                # Get time before execution.
+                start = Time.now
+
                 old_pc = r16("PC")
 
                 process_serial
                 cycles_done = @instance.continue(1)
                 cycles_left -= cycles_done
                 actual_cycles += cycles_done
+
+                # Get time after execution.
+                ending = Time.now
+
+                # Get elapsed time and calculate padding time to match clock speed.
+                if @instance.clock_speed > 0
+                    elapsed = ending - start
+
+                    execution_time = actual_cycles * (1/@instance.clock_speed)
+                    padding = execution_time - elapsed
+                    sleep(padding)
+                end
 
                 # Have we hit a breakpoint or HALT instruction?
                 if @instance.break?
