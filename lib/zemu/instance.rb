@@ -38,6 +38,8 @@ module Zemu
         }
 
         def initialize(configuration)
+            @clock = configuration.clock_speed
+
             @wrapper = make_wrapper(configuration)
 
             @serial = []
@@ -45,6 +47,11 @@ module Zemu
             @instance = @wrapper.zemu_init
             @wrapper.zemu_power_on(@instance)
             @wrapper.zemu_reset(@instance)
+        end
+
+        # Returns the clock speed of this instance in Hz.
+        def clock_speed
+            return @clock
         end
 
         # Returns a hash containing current values of the emulated
