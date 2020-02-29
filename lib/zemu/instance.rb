@@ -179,9 +179,11 @@ module Zemu
 
             wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
 
-            wrapper.attach_function :zemu_io_serial_master_puts, [:uint8], :void
-            wrapper.attach_function :zemu_io_serial_master_gets, [], :uint8
-            wrapper.attach_function :zemu_io_serial_buffer_size, [], :uint64
+            configuration.io.each do |device|
+                device.functions.each do |f|
+                    wrapper.attach_function(f["name"], f["args"], f["return"])
+                end
+            end
 
             return wrapper
         end

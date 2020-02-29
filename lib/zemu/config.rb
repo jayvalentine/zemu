@@ -185,6 +185,38 @@ module Zemu
                 super
             end
 
+            def when_setup(&block)
+                @setup_block = block
+            end
+
+            def when_read(&block)
+                @read_block = block
+            end
+
+            def when_write(&block)
+                @write_block = block
+            end
+
+            def setup
+                instance_eval(&@setup_block)
+            end
+
+            def read
+                instance_eval(&@read_block)
+            end
+
+            def write
+                instance_eval(&@write_block)
+            end
+
+            def functions
+                [
+                    {"name" => :zemu_io_serial_master_puts, "args" => [:uint8], "return" => :void},
+                    {"name" => :zemu_io_serial_master_gets, "args" => [], "return" => :uint8},
+                    {"name" => :zemu_io_serial_buffer_size, "args" => [], "return" => :uint64}
+                ]
+            end
+
             # Valid parameters for this object.
             # Should be extended by subclasses but NOT REPLACED.
             def params
@@ -217,6 +249,55 @@ module Zemu
             #
             def initialize
                 super
+
+                when_setup do
+                    "SerialBuffer io_#{name}_buffer_master = { .head = 0, .tail = 0 };\n" +
+                    "SerialBuffer io_#{name}_buffer_slave = { .head = 0, .tail = 0 };\n" +
+                    "\n" +
+                    "zusize zemu_io_#{name}_buffer_size(void)\n" +
+                    "{\n" +
+                    "    zusize start = io_#{name}_buffer_slave.head;\n" +
+                    "    zusize end = io_#{name}_buffer_slave.tail\n;" +
+                    "    if (end < start) end += ZEMU_IO_SERIAL_BUFFER_SIZE;\n" +
+                    "    return end - start;\n" +
+                    "}\n" +
+                    "\n" +
+                    "void zemu_io_#{name}_slave_puts(zuint8 val)\n" +
+                    "{\n" +
+                    "    io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.tail] = val;\n" +
+                    "    io_#{name}_buffer_slave.tail++;\n" +
+                    "    if (io_#{name}_buffer_slave.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                    "        io_#{name}_buffer_slave.tail = 0;\n" +
+                    "}\n" +
+                    "\n" +
+                    "zuint8 zemu_io_#{name}_slave_gets(void)\n" +
+                    "{\n" +
+                    "    zuint8 val = io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.head];\n" +
+                    "    io_#{name}_buffer_master.head++;\n" +
+                    "    if (io_#{name}_buffer_master.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                    "        io_#{name}_buffer_master.head = 0;\n" +
+                    "\n" +
+                    "    return val;\n" +
+                    "}\n" +
+                    "\n" +
+                    "void zemu_io_#{name}_master_puts(zuint8 val)\n" +
+                    "{\n" +
+                    "    io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.tail] = val;\n" +
+                    "    io_#{name}_buffer_master.tail++;\n" +
+                    "    if (io_#{name}_buffer_master.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                    "        io_#{name}_buffer_master.tail = 0;\n" +
+                    "}\n" +
+                    "\n" +
+                    "zuint8 zemu_io_#{name}_master_gets(void)\n" +
+                    "{\n" +
+                    "    zuint8 val = io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.head];\n" +
+                    "    io_#{name}_buffer_slave.head++;\n" +
+                    "    if (io_#{name}_buffer_slave.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                    "        io_#{name}_buffer_slave.head = 0;\n" +
+                    "\n" +
+                    "    return val;\n" +
+                    "}\n"
+                end
             
                 @io_type = :serial
             end
