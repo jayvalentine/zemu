@@ -1,0 +1,3 @@
+MAJOR = 0
+MINOR = 2
+REFRESH = 1
