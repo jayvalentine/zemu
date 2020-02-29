@@ -185,30 +185,59 @@ module Zemu
                 super
             end
 
+            # Defines the setup behaviour of this IO device.
+            #
+            # Expects a block, the return value of which is a string
+            # containing all data and function declarations required by this IO device.
+            #
+            # The block will be instance-evaluated at build-time, so it is possible to use
+            # instance variables of the IO device.
             def when_setup(&block)
                 @setup_block = block
             end
 
+            # Defines the read behaviour of this IO device.
+            #
+            # Expects a block, the return value of which is a string
+            # containing the behaviour of this IO device when a value is read from the IO bus.
+            # Care must be taken to ensure that this functionality does not conflict with that of
+            # any other IO devices.
+            #
+            # The block will be instance-evaluated at build-time, so it is possible to use
+            # instance variables of the IO device.
             def when_read(&block)
                 @read_block = block
             end
 
+            # Defines the write behaviour of this IO device.
+            #
+            # Expects a block, the return value of which is a string
+            # containing the behaviour of this IO device when a value is written to the IO bus.
+            # Care must be taken to ensure that this functionality does not conflict with that of
+            # any other IO devices.
+            #
+            # The block will be instance-evaluated at build-time, so it is possible to use
+            # instance variables of the IO device.
             def when_write(&block)
                 @write_block = block
             end
 
+            # Evaluates the when_setup block of this IO device and returns the resulting string.
             def setup
                 instance_eval(&@setup_block)
             end
 
+            # Evaluates the when_read block of this IO device and returns the resulting string.
             def read
                 instance_eval(&@read_block)
             end
 
+            # Evaluates the when_write block of this IO device and returns the resulting string.
             def write
                 instance_eval(&@write_block)
             end
 
+            # Defines FFI API which will be available to the instance wrapper if this IO device is used.
             def functions
                 [
                     {"name" => "zemu_io_#{name}_master_puts".to_sym, "args" => [:uint8], "return" => :void},
