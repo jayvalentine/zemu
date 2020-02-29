@@ -2,7 +2,11 @@ require 'rake/testtask'
 require 'rdoc/task'
 require 'yard'
 
+require 'erb'
+
 require 'fileutils'
+
+require_relative 'version'
 
 # The location of this rakefile.
 HERE = __dir__
@@ -58,6 +62,15 @@ namespace :release do
         end
     end
 
+    def build_readme(major, minor, refresh)
+        readme_template = ERB.new File.read(File.join(HERE, "README.md.erb"))
+
+        changes = Dir.glob(File.join(HERE, "changelog/*.md"))
+        version = "#{major}.#{minor}.#{refresh}"
+
+        File.write(File.join(HERE, "README.md"), readme_template.result(binding))
+    end
+
     desc "Release checklist"
     task :check => [:docs, :test]
 
@@ -65,12 +78,12 @@ namespace :release do
     task :minor => :check do
         clean_gems
 
-        gemspec = File.read(File.join(HERE, "zemu.gemspec"))
+        version = File.read(File.join(HERE, "version"))
 
         minor = 0
 
         # Get the current minor version.
-        m = gemspec.match(/MINOR = (\d+)/)
+        m = version.match(/MINOR = (\d+)/)
         if m.nil?
             abort("Could not determine minor version.")
         else
@@ -80,12 +93,15 @@ namespace :release do
         # Bump by 1.
         minor += 1
 
-        gemspec.gsub!(/MINOR = \d+/, "MINOR = #{minor}")
+        version.gsub!(/MINOR = \d+/, "MINOR = #{minor}")
 
         # Reset refresh number to 0.
-        gemspec.gsub!(/REFRESH = \d+/, "REFRESH = 0")
+        version.gsub!(/REFRESH = \d+/, "REFRESH = 0")
 
-        File.write("zemu.gemspec", gemspec)
+        File.write("version.rb", version)
+
+        # Build the readme.
+        build_readme(MAJOR, minor, 0)
 
         # Build the gem.
         system "gem build zemu.gemspec"
@@ -95,12 +111,12 @@ namespace :release do
     task :refresh => :check do
         clean_gems
 
-        gemspec = File.read(File.join(HERE, "zemu.gemspec"))
+        version = File.read(File.join(HERE, "version.rb"))
 
         refresh = 0
 
         # Get the current refresh version.
-        m = gemspec.match(/REFRESH = (\d+)/)
+        m = version.match(/REFRESH = (\d+)/)
         if m.nil?
             abort("Could not determine refresh version.")
         else
@@ -110,9 +126,12 @@ namespace :release do
         # Bump by 1.
         refresh += 1
 
-        gemspec.gsub!(/REFRESH = \d+/, "REFRESH = #{refresh}")
+        version.gsub!(/REFRESH = \d+/, "REFRESH = #{refresh}")
 
-        File.write("zemu.gemspec", gemspec)
+        File.write("version.rb", version)
+
+        # Build the readme.
+        build_readme(MAJOR, MINOR, refresh)
 
         # Build the gem.
         system "gem build zemu.gemspec"
