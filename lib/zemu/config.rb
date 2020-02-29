@@ -211,9 +211,9 @@ module Zemu
 
             def functions
                 [
-                    {"name" => :zemu_io_serial_master_puts, "args" => [:uint8], "return" => :void},
-                    {"name" => :zemu_io_serial_master_gets, "args" => [], "return" => :uint8},
-                    {"name" => :zemu_io_serial_buffer_size, "args" => [], "return" => :uint64}
+                    {"name" => "zemu_io_#{name}_master_puts".to_sym, "args" => [:uint8], "return" => :void},
+                    {"name" => "zemu_io_#{name}_master_gets".to_sym, "args" => [], "return" => :uint8},
+                    {"name" => "zemu_io_#{name}_buffer_size".to_sym, "args" => [], "return" => :uint64}
                 ]
             end
 
@@ -298,8 +298,31 @@ module Zemu
                     "    return val;\n" +
                     "}\n"
                 end
-            
-                @io_type = :serial
+
+                when_read do
+                    "if (port == #{in_port})\n" +
+                    "{\n" +
+                    "    return zemu_io_#{name}_slave_gets();\n" +
+                    "}\n" +
+                    "else if (port == #{ready_port})\n" +
+                    "{\n" +
+                    "    if (io_#{name}_buffer_master.head == io_#{name}_buffer_master.tail)\n" +
+                    "    {\n" +
+                    "        return 0;\n" +
+                    "    }\n" +
+                    "    else\n" +
+                    "    {\n" +
+                    "        return 1;\n" +
+                    "    }\n" +
+                    "}\n"
+                end
+
+                when_write do
+                    "if (port == #{out_port})\n" +
+                    "{\n" +
+                    "    zemu_io_#{name}_slave_puts(value);\n" +
+                    "}\n"
+                end
             end
 
             # Valid parameters for a SerialPort, along with those
