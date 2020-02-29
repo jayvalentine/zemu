@@ -74,7 +74,7 @@ namespace :release do
     desc "Release checklist"
     task :check => [:docs, :test] do
         # Check that we have release notes.
-        if Dir.glob(File.join(HERE), "changelog/*.md").size == 0
+        if Dir.glob(File.join(HERE, "changelog/*.md")).size == 0
             abort("No release notes present in #{File.join(HERE, "changelog")}!")
         end
     end
