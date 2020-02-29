@@ -169,6 +169,53 @@ module Zemu
         # Input/Output Port object
         #
         # Represents an input/output device assigned to one or more ports.
+        #
+        # This is an abstract class and cannot be instantiated directly.
+        # The when_setup, when_read, and when_write methods can be used to define
+        # the behaviour of a subclass.
+        #
+        # @example
+        #    class MyIODevice < IOPort
+        #        # Extend the parameters of the object so we can define a port.
+        #        def params
+        #            super + "port"
+        #        end
+        #
+        #        def initialize
+        #            super
+        # 
+        #            # Define the setup for the IO device.
+        #            # This is some global C code that ends up in "io.c".
+        #            # Parameters can be used here, as the block is instance-evaluated.
+        #            when_setup do
+        #                %Q(zuint8 #{name}_value = 42;)
+        #            end
+        #
+        #            # Define the logic when reading from an IO port.
+        #            # The C variable "port" takes the value of the 8-bit port
+        #            # address being read from, and should be used to identify
+        #            # if this IO device is the one being used.
+        #            when_read do
+        #                %Q(if (port == #{port}) return #{name}_value;)
+        #            end
+        #
+        #            # Define the logic when writing to the IO port.
+        #            # Similar to #when_read, but we have access to an extra
+        #            # C variable, "value". This is the value being written
+        #            # to the IO port.
+        #            when_write do
+        #                %Q(if (port == #{port}) #{name}_value = value;)
+        #            end
+        #        end
+        #    end
+        #
+        #    # The subclass can now be declared as below:
+        #    device = MyIODevice.new do
+        #        name "myDevice"
+        #        port 11
+        #    end
+        #
+        #
         class IOPort < ConfigObject
             attr_reader :io_type
 

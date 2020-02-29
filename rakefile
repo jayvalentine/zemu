@@ -36,7 +36,7 @@ namespace :docs do
     task :build do
         system("rm -r #{File.join(HERE, "doc")}")
         
-        output = `yardoc`
+        output = `yardoc --markup-providor redcarpet`
 
         unless /100.00% documented/ =~ output
             system("yard stats --list-undoc")
