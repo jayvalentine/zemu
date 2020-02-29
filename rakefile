@@ -69,6 +69,15 @@ namespace :release do
         version = "#{major}.#{minor}.#{refresh}"
 
         File.write(File.join(HERE, "README.md"), readme_template.result(binding))
+
+        archive_path = File.join(HERE, "changelog", version)
+
+        FileUtils.mkdir(archive_path)
+
+        changes.each do |path|
+            FileUtils.cp(path, File.join(archive_path, File.basename(path)))
+            FileUtils.rm(path)
+        end
     end
 
     desc "Release checklist"

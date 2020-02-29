@@ -13,6 +13,15 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
+## New in v0.2.2
+
+### Interface for Defining Run-Time Behaviour of IOPort Subclasses
+
+The IOPort class now provides an interface through which a subclass can define
+the code that gets generated for an instance of an IO device.
+
+For more details, see the documentation for IOPort.
+
 ## Usage
 
 Configurations can be defined in a declarative syntax, from which
