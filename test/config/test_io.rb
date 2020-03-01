@@ -29,5 +29,18 @@ module Config
             assert_equal 0x01, serial.out_port
             assert_equal 0x02, serial.ready_port
         end
+
+        # We should be able to initialize an instance of the timer class.
+        def test_timer
+            timer = Zemu::Config::TImer.new do
+                name "timer"
+                count_port 0x00
+                control_port 0x01
+            end
+
+            assert_equal "timer", timer.name
+            assert_equal 0x00, timer.count_port
+            assert_equal 0x01, timer.control_port
+        end
     end
 end
