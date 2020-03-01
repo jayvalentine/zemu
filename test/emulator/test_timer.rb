@@ -8,7 +8,34 @@ class TimerTest < Minitest::Test
         @instance.quit unless @instance.nil?
     end
 
+    def asm(string)
+        # Write the string to a temporary asm file.
+        File.open(File.join(BIN, "temp.asm"), "w+") { |f| f.puts string }
+
+        # Assemble.
+        `vasmz80_oldstyle -Fbin -o #{File.join(BIN, "temp.bin")} #{File.join(BIN, "temp.asm")}`
+    end
+
     def test_interrupt
+        # Assemble the test program.
+        asm <<-eos
+        org     $0000
+    start:
+        jp      main
+    
+        org     $0066
+    nmi:
+        reti
+    
+        org     $0100
+    main:
+        ld      B, $0
+    main_loop:
+        inc     B
+        jp      main_loop
+    
+eos
+
         conf = Zemu::Config.new do
             name "zemu_interrupt"
 
@@ -19,7 +46,7 @@ class TimerTest < Minitest::Test
                 address 0x0000
                 size 0x1000
 
-                contents from_binary(File.join(__dir__, "test_interrupt.bin"))
+                contents from_binary(File.join(BIN, "temp.bin"))
             end)
 
             add_io (Zemu::Config::Timer.new do
