@@ -422,12 +422,16 @@ module Zemu
                 super
 
                 when_setup do
+                    "zuint8 io_#{name}_count;\n" +
+                    "zuint8 io_#{name}_running = 0;\n"
                 end
 
                 when_read do
                 end
 
                 when_write do
+                    "if (port == #{count_port}) io_#{name}_count = value;\n" +
+                    "else if (port == #{control_port}) io_#{name}_running = value;\n"
                 end
             end
 
