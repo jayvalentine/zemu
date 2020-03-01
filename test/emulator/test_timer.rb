@@ -126,7 +126,7 @@ eos
 
         # Run until halt/breakpoint.
         # Because we've not set the timer running, we expect to have hit the HALT.
-        @instance.continue(1000)
+        @instance.continue
 
         # We'd expect to be in the ISR.
         assert @instance.halted?, "Expected to hit HALT."

@@ -461,8 +461,11 @@ module Zemu
                 end
 
                 when_clock do
-                    "if (io_#{name}_count > 0) io_#{name}_count--;\n" +
-                    "else zemu_io_nmi(instance);\n"
+                    "if (io_#{name}_running)\n" +
+                    "{\n" +
+                    "    if (io_#{name}_count > 0) io_#{name}_count--;\n" +
+                    "    else zemu_io_nmi(instance);\n" +
+                    "}\n"
                 end
             end
 
