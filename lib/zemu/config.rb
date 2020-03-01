@@ -284,13 +284,8 @@ module Zemu
                 instance_eval(&@write_block)
             end
 
-            # Defines FFI API which will be available to the instance wrapper if this IO device is used.
             def functions
-                [
-                    {"name" => "zemu_io_#{name}_master_puts".to_sym, "args" => [:uint8], "return" => :void},
-                    {"name" => "zemu_io_#{name}_master_gets".to_sym, "args" => [], "return" => :uint8},
-                    {"name" => "zemu_io_#{name}_buffer_size".to_sym, "args" => [], "return" => :uint64}
-                ]
+                []
             end
 
             # Valid parameters for this object.
@@ -401,10 +396,45 @@ module Zemu
                 end
             end
 
+            # Defines FFI API which will be available to the instance wrapper if this IO device is used.
+            def functions
+                [
+                    {"name" => "zemu_io_#{name}_master_puts".to_sym, "args" => [:uint8], "return" => :void},
+                    {"name" => "zemu_io_#{name}_master_gets".to_sym, "args" => [], "return" => :uint8},
+                    {"name" => "zemu_io_#{name}_buffer_size".to_sym, "args" => [], "return" => :uint64}
+                ]
+            end
+
             # Valid parameters for a SerialPort, along with those
             # defined in [Zemu::Config::IOPort].
             def params
                 super + %w(in_port out_port ready_port)
+            end
+        end
+
+        # Non-Maskable Interrupt Timer
+        #
+        # Represents a timer device, the period of which can be controlled
+        # by the CPU through an IO port. The timer generates an NMI once this
+        # period has expired. The timer can be reset via a control port.
+        class Timer < IOPort
+            def initialize
+                super
+
+                when_setup do
+                end
+
+                when_read do
+                end
+
+                when_write do
+                end
+            end
+
+            # Valid parameters for a Timer, along with those defined in
+            # [Zemu::Config::IOPort].
+            def params
+                super + %w(count_port control_port)
             end
         end
 

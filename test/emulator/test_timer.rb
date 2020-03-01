@@ -34,15 +34,8 @@ class TimerTest < Minitest::Test
         # Set a breakpoint on the ISR.
         @instance.break 0x66, :program
 
-        # Run until break.
-        @instance.continue
-
-        # We'd expect to be in the ISR.
-        assert @instance.break?, "Expected to hit breakpoint."
-        assert_equal 0x66, @instance.registers["PC"], "Expected to hit breakpoint in ISR."
-
-        # Run until break.
-        @instance.continue
+        # Run for 1000 cycles. We'd expect to hit the ISR before then.
+        @instance.continue(1000)
 
         # We'd expect to be in the ISR.
         assert @instance.break?, "Expected to hit breakpoint."

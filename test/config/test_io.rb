@@ -32,7 +32,7 @@ module Config
 
         # We should be able to initialize an instance of the timer class.
         def test_timer
-            timer = Zemu::Config::TImer.new do
+            timer = Zemu::Config::Timer.new do
                 name "timer"
                 count_port 0x00
                 control_port 0x01
