@@ -28,3 +28,10 @@ void zemu_io_out(void * context, zuint16 port, zuint8 value)
 <%= device.write %>
 <% end %>
 }
+
+void zemu_io_clock(void)
+{
+<% io.each do |device| %>
+<%= device.clock %>
+<% end %>
+}

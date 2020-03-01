@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "memory.h"
+#include "io.h"
 
 /* Define number of breakpoints, if not done so already. */
 #ifndef ZEMU_DEBUG_MAX_BREAKPOINTS

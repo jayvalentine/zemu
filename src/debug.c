@@ -45,6 +45,9 @@ zusize zemu_debug_step(Z80 * instance)
     /* Will run for at least one cycle. */
     zusize cycles = z80_run(instance, 1);
 
+    /* Execute the per-cycle behaviour of the peripheral devices. */
+    for (zusize i = 0; i < cycles; i++) zemu_io_clock();
+
     return cycles;
 }
 

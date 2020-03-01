@@ -1,3 +1,6 @@
+#ifndef _ZEMU_IO_H
+#define _ZEMU_IO_H
+
 #include "emulation/CPU/Z80.h"
 
 #ifndef ZEMU_IO_SERIAL_BUFFER_SIZE
@@ -16,3 +19,6 @@ zusize zemu_io_serial_buffer_size(void);
 
 zuint8 zemu_io_in(void * context, zuint16 port);
 void zemu_io_out(void * context, zuint16 port, zuint8 value);
+void zemu_io_clock(void);
+
+#endif

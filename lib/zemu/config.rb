@@ -228,6 +228,10 @@ module Zemu
                 end
 
                 @ports = []
+                @setup_block = nil
+                @read_block = nil
+                @write_block = nil
+                @clock_block = nil
 
                 super
             end
@@ -269,19 +273,41 @@ module Zemu
                 @write_block = block
             end
 
+            # Defines the per-cycle behaviour of this IO device.
+            #
+            # Expects a block, the return value of which is a string
+            # defining the behaviour of the IO device on each system clock cycle.
+            # Care must be taken to ensure that this functionality does not conflict with that of
+            # any other IO devices.
+            #
+            # The block will be instance-evaluated at build-time, so it is possible to use
+            # instance variables of the IO device.
+            def when_clock(&block)
+                @clock_block = block
+            end
+
             # Evaluates the when_setup block of this IO device and returns the resulting string.
             def setup
-                instance_eval(&@setup_block)
+                return instance_eval(&@setup_block) unless @setup_block.nil?
+                return ""
             end
 
             # Evaluates the when_read block of this IO device and returns the resulting string.
             def read
-                instance_eval(&@read_block)
+                return instance_eval(&@read_block) unless @read_block.nil?
+                return ""
             end
 
             # Evaluates the when_write block of this IO device and returns the resulting string.
             def write
-                instance_eval(&@write_block)
+                return instance_eval(&@write_block) unless @write_block.nil?
+                return ""
+            end
+
+            # Evaluates the when_clock block of this IO device and returns the resulting string.
+            def clock
+                return instance_eval(&@clock_block) unless @clock_block.nil?
+                return ""
             end
 
             def functions
