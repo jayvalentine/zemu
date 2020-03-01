@@ -29,7 +29,12 @@ void zemu_io_out(void * context, zuint16 port, zuint8 value)
 <% end %>
 }
 
-void zemu_io_clock(void)
+void zemu_io_nmi(Z80 * instance)
+{
+    z80_nmi(instance);
+}
+
+void zemu_io_clock(Z80 * instance)
 {
 <% io.each do |device| %>
 <%= device.clock %>

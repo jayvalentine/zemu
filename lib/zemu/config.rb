@@ -459,6 +459,11 @@ module Zemu
                     "if (port == #{count_port}) io_#{name}_count = value;\n" +
                     "else if (port == #{control_port}) io_#{name}_running = value;\n"
                 end
+
+                when_clock do
+                    "if (io_#{name}_count > 0) io_#{name}_count++;\n" +
+                    "else zemu_io_nmi(instance);\n"
+                end
             end
 
             # Valid parameters for a Timer, along with those defined in
