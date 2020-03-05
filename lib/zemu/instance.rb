@@ -178,6 +178,7 @@ module Zemu
         # @param address The address of the breakpoint to be removed.
         # @param type The type of breakpoint. See Instance#break.
         def remove_break(address, type)
+            @breakpoints.reject! { |b| b == address }
         end
 
         # Returns true if the CPU has halted, false otherwise.
