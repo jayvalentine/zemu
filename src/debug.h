@@ -12,10 +12,10 @@
 
 typedef enum RunState
 {
-    RUNNING,
-    HALTED,
-    BREAK,
-    UNDEFINED
+    RUNNING = 0,
+    HALTED = 1,
+    BREAK = 2,
+    UNDEFINED = -1
 } RunState;
 
 zusize zemu_debug_continue(Z80 * instance, zinteger run_cycles);
