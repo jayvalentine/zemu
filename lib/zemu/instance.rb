@@ -208,8 +208,6 @@ module Zemu
 
             wrapper.attach_function :zemu_debug_halted, [], :bool
 
-            wrapper.attach_function :zemu_debug_set_breakpoint, [:uint16], :void
-
             wrapper.attach_function :zemu_debug_register, [:pointer, :uint16], :uint16
             wrapper.attach_function :zemu_debug_pc, [:pointer], :uint16
 

@@ -1,11 +1,5 @@
 #include "debug.h"
 
-/* Currently, the number of breakpoints is defined statically.
- * Perhaps in future there will be an unlimited number.
- */
-zuint16 breakpoints[ZEMU_DEBUG_MAX_BREAKPOINTS];
-unsigned int breakpoint_count = 0;
-
 zboolean halted = FALSE;
 
 zusize zemu_debug_step(Z80 * instance)
@@ -17,12 +11,6 @@ zusize zemu_debug_step(Z80 * instance)
     for (zusize i = 0; i < cycles; i++) zemu_io_clock(instance);
 
     return cycles;
-}
-
-void zemu_debug_set_breakpoint(zuint16 address)
-{
-    breakpoints[breakpoint_count] = address;
-    breakpoint_count++;
 }
 
 zuint16 zemu_debug_register(Z80 * instance, zuint16 r)
