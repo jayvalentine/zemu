@@ -172,6 +172,14 @@ module Zemu
             @breakpoints << address
         end
 
+        # Remove a breakpoint of the given type at the given address.
+        # Does nothing if no breakpoint previously existed at that address.
+        #
+        # @param address The address of the breakpoint to be removed.
+        # @param type The type of breakpoint. See Instance#break.
+        def remove_break(address, type)
+        end
+
         # Returns true if the CPU has halted, false otherwise.
         def halted?
             return @state == RunState::HALTED
