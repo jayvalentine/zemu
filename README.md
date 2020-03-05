@@ -13,14 +13,22 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.2.2
+## New in v0.3.0
 
-### Interface for Defining Run-Time Behaviour of IOPort Subclasses
+### Improvement to Instance#continue
 
-The IOPort class now provides an interface through which a subclass can define
-the code that gets generated for an instance of an IO device.
+The Instance#continue method is now implemented directly in Ruby, rather than simply being
+a wrapper around a C implementation. This will make it easier to extend debugging functionality
+in the future.
+### Non-Maskable Interrupt Timer
 
-For more details, see the documentation for IOPort.
+The Timer IO device has been added. This device provides an 8-bit register to which the emulated
+machine can write a count. The count decreases by 1 for every cycle executed, and generates an NMI
+once expired.
+### Added Instance#remove_break method
+
+Added the #remove_break method to the Instance class, which allows the removal
+of a previously-set breakpoint.
 
 ## Usage
 
