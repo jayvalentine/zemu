@@ -67,6 +67,48 @@ class StartTest < Minitest::Test
         assert @instance.halted?
     end
 
+    def test_program_remove_break
+        conf = Zemu::Config.new do
+            name "zemu_program_remove_break"
+
+            output_directory BIN
+
+            add_memory (Zemu::Config::ROM.new do
+                name "rom"
+                address 0x0000
+                size 0x1000
+                
+                # 3 NOPs and then a HALT
+                contents [0x00, 0x00, 0x00, 0x76]
+            end)
+        end
+
+        @instance = Zemu.start(conf)
+
+        # Set breakpoint on address of second NOP.
+        @instance.break 0x0001, :program
+
+        # Set breakpoint on address of third NOP.
+        @instance.break 0x0002, :program
+
+        # Run until break
+        @instance.continue
+
+        # Assert that we've hit the breakpoint.
+        assert @instance.break?
+        assert_equal 0x0001, @instance.registers["PC"]
+
+        # Remove the second breakpoint.
+        @instance.remove_break 0x0002, :program
+
+        # Run until halt
+        @instance.continue
+
+        # Assert that we've halted.
+        # We shouldn't have hit a breakpoint at 0x0002.
+        assert @instance.halted?
+    end
+
     def test_memory_write
         conf = Zemu::Config.new do
             name "zemu_memory_write"
