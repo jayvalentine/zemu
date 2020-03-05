@@ -37,10 +37,18 @@ module Zemu
             "L'" => 19
         }
 
+        # States that the emulated machine can be in.
         class RunState
+            # Currently executing an instruction.
             RUNNING = 0
+
+            # Executed a HALT instruction in the previous cycle.
             HALTED = 1
+
+            # Hit a breakpoint in the previous cycle.
             BREAK = 2
+
+            # Undefined. Emulated machine has not yet reached a well-defined state.
             UNDEFINED = -1
         end
 

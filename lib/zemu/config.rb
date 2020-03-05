@@ -310,6 +310,7 @@ module Zemu
                 return ""
             end
 
+            # Defines FFI API which will be available to the instance wrapper if this IO device is used.
             def functions
                 []
             end
