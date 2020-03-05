@@ -92,7 +92,7 @@ namespace :release do
     task :minor => :check do
         clean_gems
 
-        version = File.read(File.join(HERE, "version"))
+        version = File.read(File.join(HERE, "version.rb"))
 
         minor = 0
 
