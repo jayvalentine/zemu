@@ -37,6 +37,13 @@ module Zemu
             "L'" => 19
         }
 
+        class RunState
+            RUNNING = 0
+            HALTED = 1
+            BREAK = 2
+            UNDEFINED = -1
+        end
+
         def initialize(configuration)
             @clock = configuration.clock_speed
 
@@ -47,6 +54,10 @@ module Zemu
             @instance = @wrapper.zemu_init
             @wrapper.zemu_power_on(@instance)
             @wrapper.zemu_reset(@instance)
+
+            @state = RunState::UNDEFINED
+
+            @breakpoints = []
         end
 
         # Returns the clock speed of this instance in Hz.
@@ -124,7 +135,32 @@ module Zemu
         #
         # Returns the number of cycles executed.
         def continue(run_cycles=-1)
-            return @wrapper.zemu_debug_continue(@instance, run_cycles)
+            # Return immediately if we're HALTED.
+            return if @state == RunState::HALTED
+
+            cycles_executed = 0
+
+            @state = RunState::RUNNING
+
+            # Run as long as:
+            #   We haven't hit a breakpoint
+            #   We haven't halted
+            #   We haven't hit the number of cycles we've been told to execute for.
+            while (run_cycles == -1 || cycles_executed < run_cycles) && (@state == RunState::RUNNING)
+                cycles_executed += @wrapper.zemu_debug_step(@instance)
+
+                pc = @wrapper.zemu_debug_pc(@instance)
+
+                # If the PC is now pointing to one of our breakpoints,
+                # we're in the BREAK state.
+                if (@breakpoints.select { |b| b == pc }.size) > 0
+                    @state = RunState::BREAK
+                elsif @wrapper.zemu_debug_halted()
+                    @state = RunState::HALTED
+                end
+            end
+
+            return cycles_executed
         end
 
         # Set a breakpoint of the given type at the given address.
@@ -133,17 +169,17 @@ module Zemu
         # @param type The type of breakpoint:
         #   * :program => Break when the program counter hits the address given. 
         def break(address, type)
-            @wrapper.zemu_debug_set_breakpoint(address)
+            @breakpoints << address
         end
 
         # Returns true if the CPU has halted, false otherwise.
         def halted?
-            return @wrapper.zemu_debug_halted
+            return @state == RunState::HALTED
         end
 
         # Returns true if a breakpoint has been hit, false otherwise.
         def break?
-            return @wrapper.zemu_debug_break
+            return @state == RunState::BREAK
         end
 
         # Powers off the emulated CPU and destroys this instance.
@@ -168,14 +204,14 @@ module Zemu
 
             wrapper.attach_function :zemu_reset, [:pointer], :void
 
-            wrapper.attach_function :zemu_debug_continue, [:pointer, :int64], :uint64
+            wrapper.attach_function :zemu_debug_step, [:pointer], :uint64
 
             wrapper.attach_function :zemu_debug_halted, [], :bool
-            wrapper.attach_function :zemu_debug_break, [], :bool
 
             wrapper.attach_function :zemu_debug_set_breakpoint, [:uint16], :void
 
             wrapper.attach_function :zemu_debug_register, [:pointer, :uint16], :uint16
+            wrapper.attach_function :zemu_debug_pc, [:pointer], :uint16
 
             wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
 

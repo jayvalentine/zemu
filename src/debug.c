@@ -1,44 +1,12 @@
 #include "debug.h"
 
-RunState zemu_debug_state = UNDEFINED;
-
 /* Currently, the number of breakpoints is defined statically.
  * Perhaps in future there will be an unlimited number.
  */
 zuint16 breakpoints[ZEMU_DEBUG_MAX_BREAKPOINTS];
 unsigned int breakpoint_count = 0;
 
-zusize zemu_debug_continue(Z80 * instance, zinteger run_cycles)
-{
-    /* Return if we've halted. */
-    if (zemu_debug_state == HALTED) return 0;
- 
-    zusize cycles = 0;
-
-    zemu_debug_state = RUNNING;
-
-    /* Run as long as:
-     * We don't hit a breakpoint
-     * We haven't run for more than the number of cycles given
-     */
-    while (zemu_debug_state == RUNNING && (run_cycles < 0 || cycles < run_cycles))
-    {
-        cycles += zemu_debug_step(instance);
-
-        /* See if the Program Counter now matches any address
-         * in the breakpoint array.
-         */
-        for (unsigned int b = 0; b < breakpoint_count; b++)
-        {
-            if (instance->state.pc == breakpoints[b])
-            {
-                zemu_debug_state = BREAK;
-            }
-        }
-    }
-
-    return cycles;
-}
+zboolean halted = FALSE;
 
 zusize zemu_debug_step(Z80 * instance)
 {
@@ -49,18 +17,6 @@ zusize zemu_debug_step(Z80 * instance)
     for (zusize i = 0; i < cycles; i++) zemu_io_clock(instance);
 
     return cycles;
-}
-
-void zemu_debug_halt(void * context, zboolean state)
-{
-    if (state)
-    {
-        zemu_debug_state = HALTED;
-    }
-    else
-    {
-        zemu_debug_state = RUNNING;
-    }
 }
 
 void zemu_debug_set_breakpoint(zuint16 address)
@@ -109,14 +65,19 @@ zuint16 zemu_debug_register(Z80 * instance, zuint16 r)
     }
 }
 
-zboolean zemu_debug_halted(void)
+zuint16 zemu_debug_pc(Z80 * instance)
 {
-    return (zemu_debug_state == HALTED);
+    return instance->state.pc;
 }
 
-zboolean zemu_debug_break(void)
+void zemu_debug_halt(void * context, zboolean state)
 {
-    return (zemu_debug_state == BREAK);
+    halted = state;
+}
+
+zboolean zemu_debug_halted(void)
+{
+    return (halted);
 }
 
 zuint8 zemu_debug_get_memory(zuint16 address)
