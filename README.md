@@ -13,22 +13,12 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.0
+## New in v0.3.1
 
-### Improvement to Instance#continue
+### Fix to Interactive-Mode Timing
 
-The Instance#continue method is now implemented directly in Ruby, rather than simply being
-a wrapper around a C implementation. This will make it easier to extend debugging functionality
-in the future.
-### Non-Maskable Interrupt Timer
-
-The Timer IO device has been added. This device provides an 8-bit register to which the emulated
-machine can write a count. The count decreases by 1 for every cycle executed, and generates an NMI
-once expired.
-### Added Instance#remove_break method
-
-Added the #remove_break method to the Instance class, which allows the removal
-of a previously-set breakpoint.
+Fixed a logic error in the way that real-world timing is simulated in interactive mode,
+which lead to inaccurate timing.
 
 ## Usage
 
