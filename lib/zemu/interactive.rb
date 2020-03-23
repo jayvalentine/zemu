@@ -132,7 +132,7 @@ module Zemu
                 if @instance.clock_speed > 0
                     elapsed = ending - start
 
-                    execution_time = actual_cycles * (1/@instance.clock_speed)
+                    execution_time = cycles_done * (1/@instance.clock_speed)
                     padding = execution_time - elapsed
                     sleep(padding) unless padding < 0
                 end
