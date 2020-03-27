@@ -65,7 +65,7 @@ module Zemu
 
             @state = RunState::UNDEFINED
 
-            @breakpoints = []
+            @breakpoints = {}
         end
 
         # Returns the clock speed of this instance in Hz.
@@ -161,7 +161,7 @@ module Zemu
 
                 # If the PC is now pointing to one of our breakpoints,
                 # we're in the BREAK state.
-                if @breakpoints.find { |b| b == pc }
+                if @breakpoints[pc]
                     @state = RunState::BREAK
                 elsif @wrapper.zemu_debug_halted()
                     @state = RunState::HALTED
@@ -177,7 +177,7 @@ module Zemu
         # @param type The type of breakpoint:
         #   * :program => Break when the program counter hits the address given. 
         def break(address, type)
-            @breakpoints << address
+            @breakpoints[address] = true
         end
 
         # Remove a breakpoint of the given type at the given address.
@@ -186,7 +186,7 @@ module Zemu
         # @param address The address of the breakpoint to be removed.
         # @param type The type of breakpoint. See Instance#break.
         def remove_break(address, type)
-            @breakpoints.reject! { |b| b == address }
+            @breakpoints[address] = false
         end
 
         # Returns true if the CPU has halted, false otherwise.
