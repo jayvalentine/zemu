@@ -161,7 +161,7 @@ module Zemu
 
                 # If the PC is now pointing to one of our breakpoints,
                 # we're in the BREAK state.
-                if (@breakpoints.select { |b| b == pc }.size) > 0
+                if @breakpoints.find { |b| b == pc }
                     @state = RunState::BREAK
                 elsif @wrapper.zemu_debug_halted()
                     @state = RunState::HALTED
