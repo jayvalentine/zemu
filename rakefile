@@ -6,12 +6,22 @@ require 'erb'
 
 require 'fileutils'
 
+require 'zemu'
+
 require_relative 'version'
 
 # The location of this rakefile.
 HERE = __dir__
 
 task :test => 'test:all'
+
+def asm(basedir, string)
+    # Write the string to a temporary asm file.
+    File.open(File.join(basedir, "temp.asm"), "w+") { |f| f.puts string }
+
+    # Assemble.
+    `vasmz80_oldstyle -Fbin -o #{File.join(basedir, "temp.bin")} #{File.join(basedir, "temp.asm")}`
+end
 
 namespace :test do
     desc "Run config tests"
@@ -27,6 +37,71 @@ namespace :test do
     desc "Run build tests"
     Rake::TestTask.new :build do |t|
         t.test_files = FileList['test/build/test_*.rb']
+    end
+
+    desc "Profile emulator performance."
+    task :profile do
+        # Assemble the test program.
+        asm "bin", <<-eos
+    org     $0000
+start:
+    jp      main
+    
+    org     $0100
+main:
+    ld      HL, hello
+    ld      B, 13
+
+main_loop:
+    ld      A, (HL)
+    out     (0), A
+
+    inc     HL
+    djnz    main_loop
+
+    halt
+
+hello:
+    text    "Hello, World!"
+    
+eos
+    
+        conf = Zemu::Config.new do
+            name "zemu_profile"
+
+            output_directory "bin"
+
+            add_memory (Zemu::Config::ROM.new do
+                name "rom"
+                address 0x0000
+                size 0x1000
+
+                contents from_binary(File.join("bin", "temp.bin"))
+            end)
+        end
+    
+        elapsed = 0
+        cycles = 0
+
+        100.times do
+            instance = Zemu.start(conf)
+
+            start = Time.now
+    
+            cycles += instance.continue
+        
+            ending = Time.now
+
+            instance.quit
+
+            print "."
+        
+            elapsed += ending - start
+        end
+
+        print "\n"
+
+        puts "Average cycle time: #{((elapsed / cycles) * 1_000_000_000).round(4)}us"
     end
 
     desc "Run all tests"
