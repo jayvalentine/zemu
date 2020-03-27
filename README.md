@@ -13,12 +13,14 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.1
+## New in v0.3.2
 
-### Fix to Interactive-Mode Timing
+### General Performance Improvements
 
-Fixed a logic error in the way that real-world timing is simulated in interactive mode,
-which lead to inaccurate timing.
+General improvements have been made to the performance of the Zemu emulator.
+
+As well as improving the execution time in non-interactive mode, this also means that it is possible
+to emulate higher clock speeds in interactive mode.
 
 ## Usage
 
