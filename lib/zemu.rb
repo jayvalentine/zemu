@@ -128,7 +128,7 @@ module Zemu
 
         includes_str += " -I" + autogen
 
-        command = "#{compiler} -Werror -Wno-unknown-warning-option -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{includes_str} #{defines_str} -o #{output} #{inputs_str}"
+        command = "#{compiler} -O2 -Werror -Wno-unknown-warning-option -fPIC -shared -Wl,-undefined -Wl,dynamic_lookup #{includes_str} #{defines_str} -o #{output} #{inputs_str}"
         
         # Run the compiler and generate a library.
         return system(command)
