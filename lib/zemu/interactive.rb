@@ -169,7 +169,7 @@ module Zemu
             
             (address.to_i(16)...address.to_i(16) + size.to_i(16)).each do |a|
                 m = @instance.memory(a)
-                if (m < 32)
+                if (m < 32 || m > 126)
                     log "%04x: %02x    ." % [a, m]
                 else
                     log ("%04x: %02x    " % [a, m]) + m.chr("UTF-8")
