@@ -13,14 +13,11 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.2
+## New in v0.3.3
 
-### General Performance Improvements
+### Fix for Memory View in Interactive Mode
 
-General improvements have been made to the performance of the Zemu emulator.
-
-As well as improving the execution time in non-interactive mode, this also means that it is possible
-to emulate higher clock speeds in interactive mode.
+Fixed issue when viewing extended-ASCII characters in the interactive-mode memory view.
 
 ## Usage
 
