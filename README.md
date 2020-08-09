@@ -13,14 +13,12 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.5
+## New in v0.3.6
 
-### Improvement to Serial Transfer Speed Limit
+### Bugfix for Serial Transfer Limit
 
-The serial transfer speed limit has been changed to approximate 9600bps, rather
-than being an arbitrary limit.
-
-This should make transfers more realistically represent their behaviour on a real system.
+A bug in the handling of the serial transfer speed limit resulted in the transfer speed effectively having no limit.
+This has been resolved.
 
 ## Usage
 
