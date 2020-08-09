@@ -13,11 +13,11 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.3
+## New in v0.3.4
 
-### Fix for Memory View in Interactive Mode
+### Addition of transfer limit on serial communications
 
-Fixed issue when viewing extended-ASCII characters in the interactive-mode memory view.
+The emulated serial communication in Interactive mode now has a transfer speed limit.
 
 ## Usage
 
