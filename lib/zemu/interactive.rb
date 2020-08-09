@@ -114,7 +114,7 @@ module Zemu
             cycles_left = cycles
             actual_cycles = 0
 
-            serial_count = 1000
+            serial_count = 0.001042
 
             while ((cycles == -1) || (cycles_left > 0))
                 # Get time before execution.
@@ -122,7 +122,7 @@ module Zemu
 
                 old_pc = r16("PC")
 
-                if (serial_count == 1000)
+                if (serial_count >= 0.001042)
                     process_serial
                     serial_count = 0
                 end
@@ -141,6 +141,8 @@ module Zemu
                     elapsed = ending - start
 
                     execution_time = cycles_done * (1/@instance.clock_speed)
+                    serial_count += execution_time
+                    
                     padding = execution_time - elapsed
                     sleep(padding) unless padding < 0
                 end
