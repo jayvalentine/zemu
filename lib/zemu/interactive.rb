@@ -127,8 +127,6 @@ module Zemu
                     serial_count = 0
                 end
 
-                serial_count += 1
-
                 cycles_done = @instance.continue(1)
                 cycles_left -= cycles_done
                 actual_cycles += cycles_done
