@@ -13,11 +13,14 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.4
+## New in v0.3.5
 
-### Addition of transfer limit on serial communications
+### Improvement to Serial Transfer Speed Limit
 
-The emulated serial communication in Interactive mode now has a transfer speed limit.
+The serial transfer speed limit has been changed to approximate 9600bps, rather
+than being an arbitrary limit.
+
+This should make transfers more realistically represent their behaviour on a real system.
 
 ## Usage
 
