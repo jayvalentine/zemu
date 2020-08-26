@@ -122,7 +122,7 @@ module Zemu
 
                 old_pc = r16("PC")
 
-                if (serial_count >= 0.02)
+                if (serial_count >= @instance.serial_delay)
                     process_serial
                     serial_count = 0
                 end
