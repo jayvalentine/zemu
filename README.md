@@ -13,12 +13,11 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.6
+## New in v0.3.7
 
-### Bugfix for Serial Transfer Limit
+### Support for Interrupts from IO Devices
 
-A bug in the handling of the serial transfer speed limit resulted in the transfer speed effectively having no limit.
-This has been resolved.
+Mode 1 interrupts (call to 0x0038) are now supported for I/O devices.
 
 ## Usage
 

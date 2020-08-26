@@ -1,3 +1,3 @@
 MAJOR = 0
 MINOR = 3
-REFRESH = 6
+REFRESH = 7
