@@ -13,11 +13,12 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.7
+## New in v0.3.8
 
-### Support for Interrupts from IO Devices
+### Added serial_delay parameter
 
-Mode 1 interrupts (call to 0x0038) are now supported for I/O devices.
+Added the `serial_delay` parameter to `Zemu::Config`, which controls the delay in seconds
+between characters being sent over the serial port.
 
 ## Usage
 
