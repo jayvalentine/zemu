@@ -4,6 +4,21 @@
 <%= device.setup %>
 <% end %>
 
+void zemu_io_nmi(Z80 * instance)
+{
+    z80_nmi(instance);
+}
+
+void zemu_io_int_on(Z80 * instance)
+{
+    z80_int(instance, TRUE);
+}
+
+void zemu_io_int_off(Z80 * instance)
+{
+    z80_int(instance, FALSE);
+}
+
 zuint8 zemu_io_in(void * context, zuint16 port)
 {
     /* Z80 IO ports occupy the lower half of the address bus.
@@ -27,11 +42,6 @@ void zemu_io_out(void * context, zuint16 port, zuint8 value)
 <% io.each do |device| %>
 <%= device.write %>
 <% end %>
-}
-
-void zemu_io_nmi(Z80 * instance)
-{
-    z80_nmi(instance);
 }
 
 void zemu_io_clock(Z80 * instance)
