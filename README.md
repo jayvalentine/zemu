@@ -13,12 +13,11 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.8
+## New in v0.3.9
 
-### Added serial_delay parameter
+### Fixed bug in serial delay functionality
 
-Added the `serial_delay` parameter to `Zemu::Config`, which controls the delay in seconds
-between characters being sent over the serial port.
+A bug which caused the `serial_delay` parameter to not be interpreted has now been resolved.
 
 ## Usage
 
