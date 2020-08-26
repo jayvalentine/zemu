@@ -54,6 +54,7 @@ module Zemu
 
         def initialize(configuration)
             @clock = configuration.clock_speed
+            @serial_delay = configuration.serial_delay
 
             @wrapper = make_wrapper(configuration)
 
@@ -71,6 +72,11 @@ module Zemu
         # Returns the clock speed of this instance in Hz.
         def clock_speed
             return @clock
+        end
+
+        # Returns the delay between characters on the serial port for this instance in seconds.
+        def serial_delay
+            return @serial_delay
         end
 
         # Returns a hash containing current values of the emulated

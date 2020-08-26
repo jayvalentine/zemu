@@ -41,5 +41,15 @@ module Config
 
             assert_equal 1_000_000, conf.clock_speed
         end
+
+        # A configuration can be given a serial delay in seconds.
+        def test_serial_delay
+            conf = Zemu::Config.new do
+                name "my_config"
+                serial_delay 0.025 # 25ms
+            end
+
+            assert_equal 0.025, conf.serial_delay
+        end
     end
 end

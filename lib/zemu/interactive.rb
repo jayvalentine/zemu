@@ -114,7 +114,7 @@ module Zemu
             cycles_left = cycles
             actual_cycles = 0
 
-            serial_count = 0.02
+            serial_count = @instance.serial_delay
 
             while ((cycles == -1) || (cycles_left > 0))
                 # Get time before execution.

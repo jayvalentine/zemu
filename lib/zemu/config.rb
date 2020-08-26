@@ -490,7 +490,7 @@ module Zemu
 
         # Parameters accessible by this configuration object.
         def params
-            return %w(name compiler output_directory clock_speed)
+            return %w(name compiler output_directory clock_speed serial_delay)
         end
 
         # Initial value for parameters of this configuration object.
@@ -498,7 +498,8 @@ module Zemu
             return {
                 "compiler" => "clang",
                 "output_directory" => "bin",
-                "clock_speed" => 0
+                "clock_speed" => 0,
+                "serial_delay" => 0
             }
         end
 
