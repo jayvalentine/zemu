@@ -16,4 +16,13 @@ class SymbolTest < Minitest::Test
         assert_equal "sym", sym.label
         assert_equal 0x1234, sym.address
     end
+
+    # Ensure that an appropriate error is raised on a malformed symbol.
+    def test_parse_malformed
+        e = assert_raises ArgumentError do
+            sym = Zemu::Debug::Symbol.parse("sym =")
+        end
+
+        assert_equal "Invalid symbol definition: 'sym ='", e.message
+    end
 end
