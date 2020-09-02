@@ -25,4 +25,25 @@ class SymbolTest < Minitest::Test
 
         assert_equal "Invalid symbol definition: 'sym ='", e.message
     end
+
+    # Ensure that an invalid address raises an exception.
+    def test_parse_invalid_address
+        e = assert_raises ArgumentError do
+            sym = Zemu::Debug::Symbol.parse("sym = fred")
+        end
+
+        assert_equal "Invalid symbol address: 'fred'", e.message
+    end
+
+    # Ensure that we can handle an address in $hex format
+    def test_hex_alternate_format
+        sym = Zemu::Debug::Symbol.parse("sym = $ffed")
+        assert_equal 0xffed, sym.address
+    end
+
+    # Ensure that we can handle an address in decimal format
+    def test_decimal
+        sym = Zemu::Debug::Symbol.parse("sym = 1000")
+        assert_equal 1000, sym.address
+    end
 end
