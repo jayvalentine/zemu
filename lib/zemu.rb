@@ -5,6 +5,7 @@ require 'pty'
 require_relative 'zemu/config'
 require_relative 'zemu/instance'
 require_relative 'zemu/interactive'
+require_relative 'zemu/debug'
 
 # Zemu is a module providing an interface to build and interact with
 # configurable Z80 emulators.
