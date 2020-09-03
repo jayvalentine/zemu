@@ -5,12 +5,22 @@ module Zemu
         # Loads a map file at the given path, and returns a hash of address => Symbol
         # for the symbols defined within.
         def self.load_map(path)
+            symbols = {}
+
             File.open(path, "r") do |f|
                 f.each_line do |l|
+                    s = Symbol.parse(l)
+
+                    if symbols[s.address].nil?
+                        symbols[s.address] = []
+                    end
+
+                    symbols[s.address] << s
+                    symbols[s.address].sort_by!(&:label)
                 end
             end
 
-            return {}
+            return symbols
         end
         
         class Symbol
