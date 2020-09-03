@@ -2,6 +2,17 @@ module Zemu
     # Handles debugging functionality, like mapping of symbols to addresses,
     # disassembling of instructions, etc.
     module Debug
+        # Loads a map file at the given path, and returns a hash of address => Symbol
+        # for the symbols defined within.
+        def self.load_map(path)
+            File.open(path, "r") do |f|
+                f.each_line do |l|
+                end
+            end
+
+            return {}
+        end
+        
         class Symbol
             # Parse a symbol definition, returning a Symbol instance.
             def self.parse(s)
