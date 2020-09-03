@@ -160,7 +160,7 @@ module Zemu
             cycles_left = cycles
             actual_cycles = 0
 
-            serial_count = @instance.serial_delay
+            serial_count = @instance.serial_delay.to_f
 
             while ((cycles == -1) || (cycles_left > 0))
                 # Get time before execution.
@@ -170,7 +170,7 @@ module Zemu
 
                 if (serial_count >= @instance.serial_delay)
                     process_serial
-                    serial_count = 0
+                    serial_count = 0.0
                 end
 
                 cycles_done = @instance.continue(1)
