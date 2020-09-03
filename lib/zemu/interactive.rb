@@ -96,16 +96,27 @@ module Zemu
 
             log ""
 
-            log "IX: #{r16("IX")}"
-            log "IY: #{r16("IY")}"
-            log "SP: #{r16("SP")}"
-            log "PC: #{r16("PC")}"
+            register_16("IX")
+            register_16("IY")
+            register_16("SP")
+            register_16("PC")
+        end
+
+        # Displays the value of a 16-bit register.
+        def register_16(r)
+            value = @instance.registers[r]
+
+            log "#{r}: #{r16(r)} (#{get_symbol(value)})"
         end
 
         # Displays the value of a general-purpose 16-bit register pair.
         def registers_gp(hi, lo)
             value = hilo(@instance.registers[hi], @instance.registers[lo])
 
+            log "#{hi}:  #{r(hi)} #{lo}: #{r(lo)} (#{get_symbol(value)})"
+        end
+
+        def get_symbol(value)
             syms = nil
             addr = value
             while addr > 0 do
@@ -118,7 +129,7 @@ module Zemu
 
             sym_str = "<#{if sym.nil? then 'undefined' else sym.label end}#{if addr == value then '' else "+#{value-addr}" end}>"
 
-            log "#{hi}:  #{r(hi)} #{lo}: #{r(lo)} (#{sym_str})"
+            return sym_str
         end
 
         # Returns a particular 8-bit register value.
