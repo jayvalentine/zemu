@@ -8,6 +8,8 @@ module Zemu
         def initialize(instance)
             @instance = instance
 
+            @symbol_table = {}
+
             @master, @slave = PTY.open
             log "Opened PTY at #{@slave.path}"
         end
@@ -59,6 +61,9 @@ module Zemu
                         memory(cmd[1], cmd[2])
                     end
 
+                elsif cmd[0] == "map"
+                    load_map(cmd[1])
+
                 elsif cmd[0] == "help"
                     log "Available commands:"
                     log "    continue [<n>]     - Continue execution for <n> cycles"
@@ -66,6 +71,7 @@ module Zemu
                     log "    registers          - View register contents"
                     log "    memory <a> [<n>]   - View <n> bytes of memory, starting at address <a>."
                     log "                         <n> defaults to 1 if omitted."
+                    log "    map <path>         - Load symbols from map file at <path>"
                     log "    break  <a>         - Set a breakpoint at the given address <a>."
                     log "    quit               - End this emulator instance."
 
@@ -79,16 +85,40 @@ module Zemu
         end
 
         # Outputs a table giving the current values of the instance's registers.
+        # For the 16-bit registers (BC, DE, HL, IX, IY, SP, PC), attempts to identify the symbol
+        # to which they point.
         def registers
             log "A:  #{r("A")} F: #{r("F")}"
-            log "B:  #{r("B")} C: #{r("C")}"
-            log "D:  #{r("D")} E: #{r("E")}"
-            log "H:  #{r("H")} L: #{r("L")}"
+
+            registers_gp('B', 'C')
+            registers_gp('D', 'E')
+            registers_gp('H', 'L')
+
             log ""
+
             log "IX: #{r16("IX")}"
             log "IY: #{r16("IY")}"
             log "SP: #{r16("SP")}"
             log "PC: #{r16("PC")}"
+        end
+
+        # Displays the value of a general-purpose 16-bit register pair.
+        def registers_gp(hi, lo)
+            value = hilo(@instance.registers[hi], @instance.registers[lo])
+
+            syms = nil
+            addr = value
+            while addr > 0 do
+                syms = @symbol_table[addr]
+                break unless syms.nil?
+                addr -= 1
+            end
+
+            sym = if syms.nil? then nil else syms[0] end
+
+            sym_str = "<#{if sym.nil? then 'undefined' else sym.label end}#{if addr == value then '' else "+#{value-addr}" end}>"
+
+            log "#{hi}:  #{r(hi)} #{lo}: #{r(lo)} (#{sym_str})"
         end
 
         # Returns a particular 8-bit register value.
@@ -99,6 +129,11 @@ module Zemu
         # Returns a particular 16-bit register value.
         def r16(reg)
             return "0x%04x" % @instance.registers[reg]
+        end
+
+        # Concatenates two 8-bit values, in big-endian format.
+        def hilo(hi, lo)
+            return (hi << 8) | lo
         end
 
         # Continue for *up to* the given number of cycles.
@@ -183,6 +218,33 @@ module Zemu
                     log ("%04x: %02x    " % [a, m]) + m.chr("UTF-8")
                 end
             end
+        end
+
+        def load_map(path)
+            if path.nil?
+                log "No path specified."
+                return
+            end
+
+            unless File.exist?(path.to_s)
+                log "Map file '#{path}' does not exist."
+                return
+            end
+
+            if File.directory?(path.to_s)
+                log "Cannot open '#{path}': it is a directory."
+                return
+            end
+
+            syms = {}
+            begin
+                syms.merge! Debug.load_map(path.to_s)
+            rescue ArgumentError => e
+                log "Error loading map file: #{e.message}"
+                syms.clear
+            end
+
+            @symbol_table.merge! syms
         end
 
         # Process serial input/output via the TTY.
