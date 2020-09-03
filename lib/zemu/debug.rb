@@ -23,6 +23,7 @@ module Zemu
             return symbols
         end
         
+        # Represents a symbol definition, of the form `label = address`.
         class Symbol
             # Parse a symbol definition, returning a Symbol instance.
             def self.parse(s)
