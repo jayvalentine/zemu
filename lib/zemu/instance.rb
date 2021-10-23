@@ -142,6 +142,16 @@ module Zemu
             return return_string
         end
 
+        # Get a byte from the attached disk drive.
+        #
+        # @param sector The sector to read
+        # @param offset The offset in sector to read
+        #
+        # Gets a byte at the given offset in the given sector.
+        def drive_readbyte(sector, offset)
+            return @wrapper.zemu_io_block_drive_readbyte(sector, offset)
+        end
+
         # Continue running this instance until either:
         # * A HALT instruction is executed
         # * A breakpoint is hit
@@ -238,7 +248,7 @@ module Zemu
 
             configuration.io.each do |device|
                 device.functions.each do |f|
-                    wrapper.attach_function(f["name"], f["args"], f["return"])
+                    wrapper.attach_function(f["name"].to_sym, f["args"], f["return"])
                 end
             end
 

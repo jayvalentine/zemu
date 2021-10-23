@@ -439,6 +439,229 @@ module Zemu
             end
         end
 
+        # Block drive object
+        #
+        # Represents a device with a sequence of sectors of a fixed size,
+        # which can be accessed via IO instructions as an IDE drive.
+        class BlockDrive < IOPort
+            # Constructor.
+            #
+            # Takes a block in which the parameters of the block drive
+            # can be initialized.
+            #
+            # All parameters can be set within this block.
+            # They become readonly as soon as the block completes.
+            #
+            # Constructor raises RangeError if a file is provided for initialization
+            # and it is of the wrong size.
+            #
+            # @example
+            #   
+            #   Zemu::Config::BlockDrive.new do
+            #       name "drive"
+            #       base_port 0x0c
+            #       sector_size 512
+            #       num_sectors 64
+            #   end
+            #
+            #
+            def initialize
+                @blocks = []
+                @initialize_from = nil
+
+                super
+
+                num_sectors.times do
+                    sector = []
+                    sector_size.times do
+                        sector << 0
+                    end
+                    @blocks << sector
+                end
+                
+                # Initialize from provided file if applicable.
+                unless @initialize_from.nil?
+                    # Check file size.
+                    file_size = File.size(@initialize_from)
+                    if (file_size != num_sectors * sector_size)
+                        raise RangeError, "Initialization file for Zemu::Config::BlockDrive '#{name}' is of wrong size."
+                    end
+
+                    File.open(@initialize_from, "rb") do |f|
+                        num_sectors.times do |s|
+                            sector_size.times do |b|
+                                @blocks[s][b] = f.getbyte()
+                            end
+                        end
+                    end
+                end
+
+                when_setup do
+<<-eos
+#include <stdio.h>
+
+zuint8 sector_data_#{name}[#{sector_size}];
+zuint32 sector_data_#{name}_offset;
+zuint32 loaded_sector_#{name} = Z_UINT32_MAXIMUM;
+zuint8 drive_mode_#{name};
+zuint8 drive_status_#{name} = 0b01000000;
+
+zuint8 lba_#{name}_0;
+zuint8 lba_#{name}_1;
+zuint8 lba_#{name}_2;
+zuint8 lba_#{name}_3;
+
+void internal_#{name}_load_sector(zuint32 sector)
+{
+    if (loaded_sector_#{name} == sector) return;
+
+    FILE * fptr = fopen("#{@initialize_from}", "rb");
+    fseek(fptr, sector * #{sector_size}, SEEK_SET);
+    fread(sector_data_#{name}, #{sector_size}, 1, fptr);
+    fclose(fptr);
+
+    loaded_sector_#{name} = sector;
+}
+
+void internal_#{name}_write_current_sector()
+{
+    FILE * fptr = fopen("#{@initialize_from}", "r+b");
+    fseek(fptr, loaded_sector_#{name} * #{sector_size}, SEEK_SET);
+    fwrite(sector_data_#{name}, 1, #{sector_size}, fptr);
+    fclose(fptr);
+}
+
+zuint8 zemu_io_#{name}_readbyte(zuint32 sector, zuint32 offset)
+{
+    internal_#{name}_load_sector(sector);
+    return sector_data_#{name}[offset];
+}
+eos
+                end
+
+                when_read do
+<<-eos
+if (port == #{base_port})
+{
+    zuint8 b = sector_data_#{name}[sector_data_#{name}_offset];
+    sector_data_#{name}_offset++;
+    if (sector_data_#{name}_offset >= #{sector_size})
+    {
+        drive_status_#{name} = 0b01000000;
+    }
+    return b;
+}
+else if (port == #{base_port+7})
+{
+    return drive_status_#{name};
+}
+eos
+                end
+
+                when_write do
+<<-eos
+if (port == #{base_port})
+{
+    if (drive_mode_#{name} == 0x01)
+    {
+        sector_data_#{name}[sector_data_#{name}_offset] = value;
+        sector_data_#{name}_offset++;
+        if (sector_data_#{name}_offset >= #{sector_size})
+        {
+            internal_#{name}_write_current_sector();
+            drive_status_#{name} = 0b01000000;
+        }
+    }
+}
+else if (port == #{base_port+3})
+{
+    lba_#{name}_0 = value;
+}
+else if (port == #{base_port+4})
+{
+    lba_#{name}_1 = value;
+}
+else if (port == #{base_port+5})
+{
+    lba_#{name}_2 = value;
+}
+else if (port == #{base_port+6})
+{
+    lba_#{name}_3 = value & 0b00011111;
+}
+else if (port == #{base_port+7})
+{
+    if (value == 0x20)
+    {
+        zuint32 sector = 0;
+        sector |= (zuint32)lba_#{name}_3 << 24;
+        sector |= (zuint32)lba_#{name}_2 << 16;
+        sector |= (zuint32)lba_#{name}_1 << 8;
+        sector |= (zuint32)lba_#{name}_0;
+
+        internal_#{name}_load_sector(sector);
+        sector_data_#{name}_offset = 0;
+
+        drive_mode_#{name} = 0x00;
+        drive_status_#{name} = 0b00001000;
+    }
+    else if (value == 0x30)
+    {
+        zuint32 sector = 0;
+        sector |= (zuint32)lba_#{name}_3 << 24;
+        sector |= (zuint32)lba_#{name}_2 << 16;
+        sector |= (zuint32)lba_#{name}_1 << 8;
+        sector |= (zuint32)lba_#{name}_0;
+
+        internal_#{name}_load_sector(sector);
+        sector_data_#{name}_offset = 0;
+
+        drive_mode_#{name} = 0x01;
+        drive_status_#{name} = 0b00001000;
+    }
+}
+eos
+                end
+            end
+
+            def drive_initializer
+                s = ""
+                blocks.each do |sector|
+                    s += "    {\n"
+                    sector.each_slice(16) do |bytes|
+                        byte_strings = bytes.map { |b| "0x%02x" % b }
+                        s += "        " + byte_strings.join(",") + ",\n"
+                    end
+                    s += "    },\n"
+                end
+
+                s
+            end
+
+            # Array of sectors of this drive.
+            def blocks
+                @blocks
+            end
+
+            # Set file to initialize from.
+            def initialize_from(file)
+                @initialize_from = file
+            end
+
+            # Defines FFI API which will be available to the instance wrapper if this IO device is used.
+            def functions
+                [
+                    {"name" => "zemu_io_#{name}_readbyte", "args" => [:uint32, :uint32], "return" => :uint8},
+                ]
+            end
+
+            # Valid parameters for a BlockDrive, along with those
+            # defined in [Zemu::Config::IOPort].
+            def params
+                super + %w(base_port sector_size num_sectors)
+            end
+        end
+
         # Non-Maskable Interrupt Timer
         #
         # Represents a timer device, the period of which can be controlled

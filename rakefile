@@ -1,3 +1,14 @@
+# Rakefile for the Zemu gem.
+
+# The location of this rakefile.
+HERE = __dir__
+
+# Add the ./lib directory to the load path
+# so that "require zemu" always references
+# the development version of the gem.
+libdir = File.join(HERE, "lib")
+$LOAD_PATH.unshift libdir unless $LOAD_PATH.include? libdir
+
 require 'rake/testtask'
 require 'rdoc/task'
 require 'yard'
@@ -9,9 +20,6 @@ require 'fileutils'
 require 'zemu'
 
 require_relative 'version'
-
-# The location of this rakefile.
-HERE = __dir__
 
 task :test => 'test:all'
 
