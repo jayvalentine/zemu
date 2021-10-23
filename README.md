@@ -13,11 +13,20 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.3.9
+## New in v0.4.0
 
-### Fixed bug in serial delay functionality
+### Added Block Device configuration object
 
-A bug which caused the `serial_delay` parameter to not be interpreted has now been resolved.
+Added the Zemu::Config::BlockDrive configuration object, which
+allows the simple emulation of a block-device, like a CF-card in IDE mode.
+### Parsing of Map Files
+
+The `Zemu::Debug` module has been added, which allows the parsing of a map file in `symbol = value` format
+into a table of symbols. This can be used in interactive mode for debugging; symbols are now shown alongside register values.
+### Fixed bug in serial handling
+
+A bug in the handling of serial communication when executing the `continue <n>` command in serial mode,
+where the serial communication would be handled at most once, has been resolved.
 
 ## Usage
 

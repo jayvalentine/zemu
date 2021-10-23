@@ -624,20 +624,6 @@ eos
                 end
             end
 
-            def drive_initializer
-                s = ""
-                blocks.each do |sector|
-                    s += "    {\n"
-                    sector.each_slice(16) do |bytes|
-                        byte_strings = bytes.map { |b| "0x%02x" % b }
-                        s += "        " + byte_strings.join(",") + ",\n"
-                    end
-                    s += "    },\n"
-                end
-
-                s
-            end
-
             # Array of sectors of this drive.
             def blocks
                 @blocks

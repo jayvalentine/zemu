@@ -116,6 +116,8 @@ module Zemu
             log "#{hi}:  #{r(hi)} #{lo}: #{r(lo)} (#{get_symbol(value)})"
         end
 
+        # Gets the symbol associated with the given value.
+        # If no matching symbol, gives offset from previous symbol.
         def get_symbol(value)
             syms = nil
             addr = value
@@ -231,6 +233,7 @@ module Zemu
             end
         end
 
+        # Loads a MAP file from the given path.
         def load_map(path)
             if path.nil?
                 log "No path specified."
