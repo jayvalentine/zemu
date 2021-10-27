@@ -30,11 +30,11 @@ eos
         # Write a binary file.
         File.open("file.bin", "wb") do |f|
             64.times do |sector|
-                512.times do |offset|
+                sector_bytes = 512.times.map do |offset|
                     # Some bytes in specific locations.
                     # All other bytes 0s.
 
-                    byte = if (sector == 0 && offset == 12)
+                    if (sector == 0 && offset == 12)
                         22
                     elsif (sector == 1 && offset == 42)
                         23
@@ -45,9 +45,9 @@ eos
                     else
                         26
                     end
+                end.to_a
 
-                    f.write [byte].pack("C")
-                end
+                f.write sector_bytes.pack("C" * 512)
             end
         end
 
@@ -175,20 +175,20 @@ eos
         # Write a binary file.
         File.open("file2.bin", "wb") do |f|
             24000.times do |sector|
-                512.times do |offset|
+                sector_bytes = 512.times.map do |offset|
                     # Some bytes in specific locations.
                     # All other bytes 0s.
 
-                    byte = if (sector == 0 && offset == 12)
+                    if (sector == 0 && offset == 12)
                         22
                     elsif (sector == 23240 && offset == 42)
                         23
                     else
                         26
                     end
+                end.to_a
 
-                    f.write [byte].pack("C")
-                end
+                f.write sector_bytes.pack("C" * 512)
             end
         end
 
@@ -400,20 +400,20 @@ eos
         # Write a binary file.
         File.open("file3.bin", "wb") do |f|
             24000.times do |sector|
-                512.times do |offset|
+                sector_bytes = 512.times.map do |offset|
                     # Some bytes in specific locations.
                     # All other bytes 0s.
 
-                    byte = if (sector == 0 && offset == 12)
+                    if (sector == 0 && offset == 12)
                         22
                     elsif (sector == 23240 && offset == 42)
                         23
                     else
                         26
                     end
+                end.to_a
 
-                    f.write [byte].pack("C")
-                end
+                f.write sector_bytes.pack("C" * 512)
             end
         end
 
@@ -456,6 +456,8 @@ eos
         # are as we expect.
         File.open("file3.bin", "rb") do |f|
             24000.times do |sector|
+                array = f.read(512).unpack("C" * 512)
+
                 512.times do |offset|
                     # Some bytes in specific locations.
                     # All other bytes 0s.
@@ -472,7 +474,7 @@ eos
                         26
                     end
 
-                    byte = f.getbyte
+                    byte = array[offset]
                     assert_equal expected_byte, byte, "Failed assert in sector #{sector}, offset #{offset}"
                 end
             end
