@@ -466,18 +466,9 @@ module Zemu
             #
             #
             def initialize
-                @blocks = []
                 @initialize_from = nil
 
                 super
-
-                num_sectors.times do
-                    sector = []
-                    sector_size.times do
-                        sector << 0
-                    end
-                    @blocks << sector
-                end
                 
                 # Initialize from provided file if applicable.
                 unless @initialize_from.nil?
@@ -485,14 +476,6 @@ module Zemu
                     file_size = File.size(@initialize_from)
                     if (file_size != num_sectors * sector_size)
                         raise RangeError, "Initialization file for Zemu::Config::BlockDrive '#{name}' is of wrong size."
-                    end
-
-                    File.open(@initialize_from, "rb") do |f|
-                        num_sectors.times do |s|
-                            sector_size.times do |b|
-                                @blocks[s][b] = f.getbyte()
-                            end
-                        end
                     end
                 end
 
@@ -626,7 +609,27 @@ eos
 
             # Array of sectors of this drive.
             def blocks
-                @blocks
+                b = []
+                
+                if @initialize_from.nil?
+                    num_sectors.times do
+                        this_block = []
+                        sector_size.times do
+                            this_block << 0
+                        end
+                        b << this_block
+                    end
+                    return b
+                end
+                
+                File.open(@initialize_from, "rb") do |f|
+                    num_sectors.times do
+                        this_block = f.read(sector_size)
+                        b << this_block.unpack("C" * sector_size)
+                    end
+                end
+
+                b
             end
 
             # Set file to initialize from.
