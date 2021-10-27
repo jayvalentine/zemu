@@ -9,10 +9,11 @@
 
 zuint8 zemu_memory_read(void * context, zuint16 address)
 {
+    zuint32 address_32 = address;
 <% memory.each do |mem| %>
-    if (address >= 0x<%= mem.address.to_s(16) %> && address < 0x<%= (mem.address + mem.size).to_s(16) %>)
+    if (address_32 >= 0x<%= mem.address.to_s(16) %> && address_32 < 0x<%= (mem.address + mem.size).to_s(16) %>)
     {
-        return zemu_memory_block_<%= mem.name %>[address - 0x<%= mem.address.to_s(16) %>];
+        return zemu_memory_block_<%= mem.name %>[address_32 - 0x<%= mem.address.to_s(16) %>];
     }
 <% end %>
     /* Unmapped memory has a value of 0. */
@@ -21,21 +22,23 @@ zuint8 zemu_memory_read(void * context, zuint16 address)
 
 void zemu_memory_write(void * context, zuint16 address, zuint8 value)
 {
+    zuint32 address_32 = address;
 <% memory.each do |mem| %>
     <% next if mem.readonly? %>
-    if (address >= 0x<%= mem.address.to_s(16) %> && address < 0x<%= (mem.address + mem.size).to_s(16) %>)
+    if (address_32 >= 0x<%= mem.address.to_s(16) %> && address_32 < 0x<%= (mem.address + mem.size).to_s(16) %>)
     {
-        zemu_memory_block_<%= mem.name %>[address - 0x<%= mem.address.to_s(16) %>] = value;
+        zemu_memory_block_<%= mem.name %>[address_32 - 0x<%= mem.address.to_s(16) %>] = value;
     }
 <% end %>
 }
 
 zuint8 zemu_memory_peek(zuint16 address)
 {
+    zuint32 address_32 = address;
 <% memory.each do |mem| %>
-    if (address >= 0x<%= mem.address.to_s(16) %> && address < 0x<%= (mem.address + mem.size).to_s(16) %>)
+    if (address_32 >= 0x<%= mem.address.to_s(16) %> && address_32 < 0x<%= (mem.address + mem.size).to_s(16) %>)
     {
-        return zemu_memory_block_<%= mem.name %>[address - 0x<%= mem.address.to_s(16) %>];
+        return zemu_memory_block_<%= mem.name %>[address_32 - 0x<%= mem.address.to_s(16) %>];
     }
 <% end %>
     /* Unmapped memory has a value of 0. */
