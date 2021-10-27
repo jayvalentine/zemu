@@ -224,8 +224,8 @@ eos
         @instance = Zemu.start(conf)
 
         # Run until halt.
-        @instance.continue 1000000
-        assert @instance.halted?, "Program did not halt."
+        @instance.continue 10000000
+        assert @instance.halted?, "Program did not halt. (at address %04x)" % @instance.registers["PC"]
 
         # Check bytes in specific positions.
         assert_equal 22, @instance.memory(0x8000 + 12)
@@ -449,8 +449,8 @@ eos
         @instance = Zemu.start(conf)
 
         # Run until halt.
-        @instance.continue 1000000
-        assert @instance.halted?, "Program did not halt."
+        @instance.continue 10000000
+        assert @instance.halted?, "Program did not halt. (at address %04x)" % @instance.registers["PC"]
 
         # Load file for drive and assert that the contents
         # are as we expect.
