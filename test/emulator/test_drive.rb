@@ -193,7 +193,7 @@ eos
         end
 
         conf = Zemu::Config.new do
-            name "zemu_drive"
+            name "zemu_drive_read"
 
             output_directory BIN
 
@@ -418,7 +418,7 @@ eos
         end
 
         conf = Zemu::Config.new do
-            name "zemu_drive"
+            name "zemu_drive_write"
 
             output_directory BIN
 
