@@ -13,20 +13,25 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.4.0
+## New in v0.4.1
 
-### Added Block Device configuration object
+### Hex code display in serial log
 
-Added the Zemu::Config::BlockDrive configuration object, which
-allows the simple emulation of a block-device, like a CF-card in IDE mode.
-### Parsing of Map Files
+The hex codes for bytes transmitted and received over the
+virtual serial port in interactive mode are now displayed alongside
+the ASCII representations.
+ ### Setting of bytes in memory
 
-The `Zemu::Debug` module has been added, which allows the parsing of a map file in `symbol = value` format
-into a table of symbols. This can be used in interactive mode for debugging; symbols are now shown alongside register values.
-### Fixed bug in serial handling
+`Instance#set_memory` can now be used to set the value
+of bytes in memory for an `Instance`.
+### Added :print_serial option to InteractiveInstance
 
-A bug in the handling of serial communication when executing the `continue <n>` command in serial mode,
-where the serial communication would be handled at most once, has been resolved.
+The `:print_serial` option can now be used when instantiating
+an `InteractiveInstance` (and when calling `Zemu::start_interactive`)
+to disable logging of serial I/O to the debug command window.
+
+This option does not change how serial I/O is handled in
+the PTY created by the interactive instance.
 
 ## Usage
 
