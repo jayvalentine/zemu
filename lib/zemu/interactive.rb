@@ -275,12 +275,12 @@ module Zemu
 
             unless input.empty?
                 @instance.serial_puts input
-                log "Serial in: #{input}"
+                log "Serial in: #{input} ($#{input.ord.to_s(16)})"
             end
 
             unless output.empty?
                 @master.write output
-                log "Serial out: #{output}"
+                log "Serial out: #{output} ($#{output.ord.to_s(16)})"
             end
         end
     end
