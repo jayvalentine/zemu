@@ -20,10 +20,12 @@ Released under the terms of the GNU General Public License v3.
 The hex codes for bytes transmitted and received over the
 virtual serial port in interactive mode are now displayed alongside
 the ASCII representations.
- ### Setting of bytes in memory
+
+### Setting of bytes in memory
 
 `Instance#set_memory` can now be used to set the value
 of bytes in memory for an `Instance`.
+
 ### Added :print_serial option to InteractiveInstance
 
 The `:print_serial` option can now be used when instantiating
