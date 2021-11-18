@@ -72,3 +72,8 @@ zuint8 zemu_debug_get_memory(zuint16 address)
 {
     return zemu_memory_peek(address);
 }
+
+void zemu_debug_set_memory(zuint16 address, zuint8 value)
+{
+    zemu_memory_poke(address, value);
+}
