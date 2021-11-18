@@ -64,8 +64,9 @@ module Zemu
     # Build and start an emulator according to the given configuration.
     #
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
-    def Zemu::start(configuration)
-        build(configuration)
+    # @param user_defines Any user-defined preprocessor macros.
+    def Zemu::start(configuration, user_defines={})
+        build(configuration, user_defines)
 
         return Instance.new(configuration)
     end
@@ -83,9 +84,10 @@ module Zemu
     # Builds a library according to the given configuration.
     #
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
+    # @param user_defines Any user-defined preprocessor macros.
     #
     # @returns true if the build is a success, false (build failed) or nil (compiler not found) otherwise.
-    def Zemu::build(configuration)
+    def Zemu::build(configuration, user_defines={})
         # Create the output directory unless it already exists.
         unless Dir.exist? configuration.output_directory
             Dir.mkdir configuration.output_directory
@@ -115,6 +117,8 @@ module Zemu
             "CPU_Z80_STATIC" => 1,
             "CPU_Z80_USE_LOCAL_HEADER" => 1
         }
+
+        defines.merge! user_defines
 
         defines_str = defines.map { |d, v| "-D#{d}=#{v}" }.join(" ")
 
