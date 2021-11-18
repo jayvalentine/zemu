@@ -106,8 +106,7 @@ EOF
         end
 
         @instance = Zemu.start(conf)
-        assert (@instance.respond_to? :zemu_io_wport_value), "IO function does not exist!"
-
+        
         @instance.break 0x0005, :program
 
         port_values = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55]

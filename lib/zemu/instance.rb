@@ -61,6 +61,10 @@ module Zemu
         end
 
         def initialize(configuration)
+            # Methods defined by IO devices that we make
+            # accessible to the user.
+            @io_methods = []
+
             @clock = configuration.clock_speed
             @serial_delay = configuration.serial_delay
 
@@ -274,10 +278,19 @@ module Zemu
             configuration.io.each do |device|
                 device.functions.each do |f|
                     wrapper.attach_function(f["name"].to_sym, f["args"], f["return"])
+                    @io_methods << f["name"].to_sym
                 end
             end
 
             return wrapper
+        end
+
+        def method_missing(method, *args)
+            if @io_methods.include? method
+                return @wrapper.send(method)
+            end
+
+            super
         end
 
         private :make_wrapper
