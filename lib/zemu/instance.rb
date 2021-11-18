@@ -37,6 +37,14 @@ module Zemu
             "L'" => 19
         }
 
+        # Mapping of extended registers
+        # to the registers that comprise them.
+        REGISTERS_EXTENDED = {
+            "HL" => ["H", "L"],
+            "BC" => ["B", "C"],
+            "DE" => ["D", "E"]
+        }
+
         # States that the emulated machine can be in.
         class RunState
             # Currently executing an instruction.
@@ -91,6 +99,12 @@ module Zemu
             REGISTERS.each do |reg, num|
                 r[reg] = @wrapper.zemu_debug_register(@instance, num)
             end
+
+            REGISTERS_EXTENDED.each do |reg, components|
+                hi = components[0]
+                lo = components[1]
+                r[reg] = (r[hi] << 8) | r[lo]
+            end
             
             return r
         end
@@ -103,6 +117,16 @@ module Zemu
         # returns the value in the given memory location.
         def memory(address)
             return @wrapper.zemu_debug_get_memory(address)
+        end
+
+        # Set the value in memory at a given address.
+        #
+        # @param address The address in memory to be set.
+        # @param value The value to set to.
+        #
+        # Returns nothing.
+        def set_memory(address, value)
+            @wrapper.zemu_debug_set_memory(address, value)
         end
 
         # Write a string to the serial line of the emulated CPU.
@@ -245,6 +269,7 @@ module Zemu
             wrapper.attach_function :zemu_debug_pc, [:pointer], :uint16
 
             wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
+            wrapper.attach_function :zemu_debug_set_memory, [:uint16, :uint8], :void
 
             configuration.io.each do |device|
                 device.functions.each do |f|
