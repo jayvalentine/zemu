@@ -5,7 +5,13 @@ module Zemu
         # Constructor.
         #
         # Create a new interactive wrapper for the given instance.
-        def initialize(instance)
+        # The options hash allows the user to configure the behaviour
+        # of the interactive instance:
+        #     :print_serial => true if serial input/output should be logged
+        #                      to the emulator window.
+        def initialize(instance, options = {})
+            @print_serial = options[:print_serial]
+
             @instance = instance
 
             @symbol_table = {}
@@ -275,12 +281,12 @@ module Zemu
 
             unless input.empty?
                 @instance.serial_puts input
-                log "Serial in: #{input} ($#{input.ord.to_s(16)})"
+                log "Serial in: #{input} ($#{input.ord.to_s(16)})" if @print_serial
             end
 
             unless output.empty?
                 @master.write output
-                log "Serial out: #{output} ($#{output.ord.to_s(16)})"
+                log "Serial out: #{output} ($#{output.ord.to_s(16)})" if @print_serial
             end
         end
     end

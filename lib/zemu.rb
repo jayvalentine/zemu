@@ -73,10 +73,10 @@ module Zemu
     # Starts an interactive instance of an emulator, according to the given configuration.
     #
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
-    def Zemu::start_interactive(configuration)
+    def Zemu::start_interactive(configuration, options = {})
         instance = start(configuration)
 
-        interactive = InteractiveInstance.new(instance)
+        interactive = InteractiveInstance.new(instance, options)
         interactive.run
     end
 
