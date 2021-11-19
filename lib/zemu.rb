@@ -62,6 +62,7 @@ module Zemu
     SRC = File.join(__dir__, "..", "src")
 
     # Build and start an emulator according to the given configuration.
+    # Returns the emulator instance.
     #
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
     # @param user_defines Any user-defined preprocessor macros.
@@ -82,11 +83,10 @@ module Zemu
     end
 
     # Builds a library according to the given configuration.
+    # Returns true if the build is a success, false (build failed) or nil (compiler not found) otherwise.
     #
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
     # @param user_defines Any user-defined preprocessor macros.
-    #
-    # @returns true if the build is a success, false (build failed) or nil (compiler not found) otherwise.
     def Zemu::build(configuration, user_defines={})
         # Create the output directory unless it already exists.
         unless Dir.exist? configuration.output_directory

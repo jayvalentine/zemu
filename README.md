@@ -13,27 +13,18 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.4.1
+## New in v0.4.2
 
-### Hex code display in serial log
+### Dynamically-defined I/O methods
 
-The hex codes for bytes transmitted and received over the
-virtual serial port in interactive mode are now displayed alongside
-the ASCII representations.
+Functions defined by I/O devices and included
+in the `functions` attribute will now be dynamically
+defined as methods of the corresponding `Instance` instance.
+### Preprocessor definitions for Instance compilation
 
-### Setting of bytes in memory
-
-`Instance#set_memory` can now be used to set the value
-of bytes in memory for an `Instance`.
-
-### Added :print_serial option to InteractiveInstance
-
-The `:print_serial` option can now be used when instantiating
-an `InteractiveInstance` (and when calling `Zemu::start_interactive`)
-to disable logging of serial I/O to the debug command window.
-
-This option does not change how serial I/O is handled in
-the PTY created by the interactive instance.
+It is now possible to pass preprocessor definitions as keyword
+arguments to `Zemu::start` such that those definitions are
+defined when compiling the instance library.
 
 ## Usage
 

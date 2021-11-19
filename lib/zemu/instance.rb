@@ -285,6 +285,7 @@ module Zemu
             return wrapper
         end
 
+        # Redirects calls to I/O FFI functions.
         def method_missing(method, *args)
             if @io_methods.include? method
                 return @wrapper.send(method)
