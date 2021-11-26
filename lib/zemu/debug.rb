@@ -5,22 +5,50 @@ module Zemu
         # Loads a map file at the given path, and returns a hash of address => Symbol
         # for the symbols defined within.
         def self.load_map(path)
-            symbols = {}
+            symbols = []
 
             File.open(path, "r") do |f|
                 f.each_line do |l|
                     s = Symbol.parse(l)
 
-                    if symbols[s.address].nil?
-                        symbols[s.address] = []
-                    end
-
-                    symbols[s.address] << s
-                    symbols[s.address].sort_by!(&:label)
+                    symbols << s
                 end
             end
 
-            return symbols
+            return Symbols.new(symbols)
+        end
+
+        # Contains a set of symbols.
+        # Allows for various lookup operations.
+        class Symbols
+            # Constructor.
+            def initialize(syms)
+                @syms = []
+                syms.each do |s|
+                    @syms << s
+                end
+            end
+
+            # Access all symbols with a given address.
+            def [](address)
+                at_address = []
+                @syms.each do |s|
+                    if s.address == address
+                        at_address << s
+                    end
+                end
+
+                return at_address.sort_by(&:label)
+            end
+
+            # Find a symbol with a given name.
+            def find_by_name(name)
+                @syms.each do |s|
+                    return s if s.label == name
+                end
+
+                return nil
+            end
         end
         
         # Represents a symbol definition, of the form `label = address`.

@@ -35,5 +35,36 @@ class MapTest < Minitest::Test
         assert_equal "symC", symbols[20][0].label
         assert_equal 20, symbols[20][0].address
     end
+
+    def test_find_by_name
+        File.open("test.map", "w+") do |f|
+            f.puts "symA = 0x1234"
+            f.puts "symB      = $feed"
+            f.puts "symC    = 20 ; This is a comment"
+            f.puts "symD = $1234"
+        end
+
+        symbols = Zemu::Debug.load_map("test.map")
+
+        # First, test the keys.
+        assert symbols.find_by_name("symA") != nil
+        assert symbols.find_by_name("symB") != nil
+        assert symbols.find_by_name("symC") != nil
+        assert symbols.find_by_name("symD") != nil
+
+        assert symbols.find_by_name("symE") == nil
+
+        assert symbols.find_by_name("symA").label == "symA"
+        assert symbols.find_by_name("symA").address == 0x1234
+
+        assert symbols.find_by_name("symB").label == "symB"
+        assert symbols.find_by_name("symB").address == 0xfeed
+
+        assert symbols.find_by_name("symC").label == "symC"
+        assert symbols.find_by_name("symC").address == 20
+
+        assert symbols.find_by_name("symD").label == "symD"
+        assert symbols.find_by_name("symD").address == 0x1234
+    end
 end
 
