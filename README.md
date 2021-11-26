@@ -13,18 +13,12 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.4.2
+## New in v0.5.0
 
-### Dynamically-defined I/O methods
+### Added Symbols class
 
-Functions defined by I/O devices and included
-in the `functions` attribute will now be dynamically
-defined as methods of the corresponding `Instance` instance.
-### Preprocessor definitions for Instance compilation
-
-It is now possible to pass preprocessor definitions as keyword
-arguments to `Zemu::start` such that those definitions are
-defined when compiling the instance library.
+The new Symbols class allows for accessing
+loaded symbols in a variety of ways.
 
 ## Usage
 
