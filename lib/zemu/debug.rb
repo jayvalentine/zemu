@@ -49,6 +49,10 @@ module Zemu
 
                 return nil
             end
+
+            def hash
+                return @syms
+            end
         end
         
         # Represents a symbol definition, of the form `label = address`.

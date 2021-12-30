@@ -11,6 +11,7 @@ module Zemu
         #                      to the emulator window.
         def initialize(instance, options = {})
             @print_serial = options[:print_serial]
+            @trace = []
 
             @instance = instance
 
@@ -70,6 +71,9 @@ module Zemu
                 elsif cmd[0] == "map"
                     load_map(cmd[1])
 
+                elsif cmd[0] == "trace"
+                    trace()
+
                 elsif cmd[0] == "help"
                     log "Available commands:"
                     log "    continue [<n>]     - Continue execution for <n> cycles"
@@ -88,6 +92,12 @@ module Zemu
             end
 
             close
+        end
+
+        def trace
+            @trace.each do |t|
+                puts "%04x" % t
+            end
         end
 
         # Outputs a table giving the current values of the instance's registers.
@@ -185,6 +195,9 @@ module Zemu
                 cycles_left -= cycles_done
                 actual_cycles += cycles_done
 
+                @trace << r16("PC")
+                @trace = @trace[1..] if @trace.size > 200
+
                 # Get time after execution.
                 ending = Time.now
 
@@ -197,6 +210,11 @@ module Zemu
                     
                     padding = execution_time - elapsed
                     sleep(padding) unless padding < 0
+                end
+
+                if (@instance.memory(0x200) != 0xf3)
+                    log "Buffer overflow at #{r16("PC")}"
+                    break
                 end
 
                 # Have we hit a breakpoint or HALT instruction?
@@ -258,7 +276,7 @@ module Zemu
 
             syms = {}
             begin
-                syms.merge! Debug.load_map(path.to_s)
+                syms.merge! Debug.load_map(path.to_s).hash
             rescue ArgumentError => e
                 log "Error loading map file: #{e.message}"
                 syms.clear
