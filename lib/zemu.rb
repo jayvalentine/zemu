@@ -111,7 +111,7 @@ module Zemu
 
         inputs_str = inputs.map { |i| File.join(SRC, i) }.join(" ")
 
-        inputs_str += " " + File.join(autogen, "memory.c") + " " + File.join(autogen, "io.c")
+        inputs_str += " " + File.join(autogen, "bus.c")
 
         defines = {
             "CPU_Z80_STATIC" => 1,
@@ -143,14 +143,13 @@ module Zemu
     #
     # @param [Zemu::Config] configuration The configuration for which an emulator will be generated.
     def Zemu::generate(configuration)
-        generate_memory(configuration)
-        generate_io(configuration)
+        generate_bus(configuration)
     end
 
-    # Generates the memory.c and memory.h files for a given configuration.
-    def Zemu::generate_memory(configuration)
-        header_template = ERB.new File.read(File.join(SRC, "memory.h.erb"))
-        source_template = ERB.new File.read(File.join(SRC, "memory.c.erb"))
+    # Generates the bus.c and bus.h files for a given configuration.
+    def Zemu::generate_bus(configuration)
+        header_template = ERB.new File.read(File.join(SRC, "bus.h.erb"))
+        source_template = ERB.new File.read(File.join(SRC, "bus.c.erb"))
 
         autogen = File.join(configuration.output_directory, "autogen_#{configuration.name}")
 
@@ -158,28 +157,10 @@ module Zemu
             Dir.mkdir autogen
         end
 
-        File.write(File.join(autogen, "memory.h"),
+        File.write(File.join(autogen, "bus.h"),
                    header_template.result(configuration.get_binding))
 
-        File.write(File.join(autogen, "memory.c"),
-                   source_template.result(configuration.get_binding))
-    end
-
-    # Generates the io.c and io.h files for a given configuration.
-    def Zemu::generate_io(configuration)
-        header_template = ERB.new File.read(File.join(SRC, "io.h.erb"))
-        source_template = ERB.new File.read(File.join(SRC, "io.c.erb"))
-
-        autogen = File.join(configuration.output_directory, "autogen_#{configuration.name}")
-
-        unless Dir.exist? autogen
-            Dir.mkdir autogen
-        end
-
-        File.write(File.join(autogen, "io.h"),
-                   header_template.result(configuration.get_binding))
-
-        File.write(File.join(autogen, "io.c"),
+        File.write(File.join(autogen, "bus.c"),
                    source_template.result(configuration.get_binding))
     end
 end

@@ -1,11 +1,12 @@
 require 'minitest/autorun'
 require 'zemu'
 
-class WriteOnlyPort < Zemu::Config::IOPort
+class WriteOnlyPort < Zemu::Config::BusDevice
     def initialize
         super
+    end
 
-        when_setup do
+    def when_setup
 <<-EOF
 zuint8 #{name}_value = 0;
 
@@ -14,27 +15,23 @@ zuint8 zemu_io_#{name}_value(void)
 return #{name}_value;
 }
 EOF
-        end
+    end
 
-        # Cannot read from port, but we need
-        # to return a value.
-        when_read do
+    # Cannot read from port, but we need
+    # to return a value.
+    def when_io_read
 <<-EOF
 if (port == #{port}) return 0;
 EOF
-        end
+    end
         
-        when_write do
+    def when_io_write
 <<-EOF
 if (port == #{port})
 {
 #{name}_value = value;
 }
 EOF
-        end
-
-        when_clock do
-        end
     end
 
     def functions
@@ -48,7 +45,7 @@ EOF
     end
 
     def params
-        %w(name port)
+        super + %w(port)
     end
 end
 

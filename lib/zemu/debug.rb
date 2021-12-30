@@ -50,6 +50,7 @@ module Zemu
                 return nil
             end
 
+            # Get symbols as a hash.
             def hash
                 return @syms
             end

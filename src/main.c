@@ -4,8 +4,7 @@
 
 #include "debug.h"
 
-#include "memory.h"
-#include "io.h"
+#include "bus.h"
 #include "interrupt.h"
 
 /* Allocate and initialize a Z80 instance.

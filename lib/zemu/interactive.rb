@@ -94,6 +94,8 @@ module Zemu
             close
         end
 
+        # Print trace for the emulator instance
+        # (last 200 addresses visited).
         def trace
             @trace.each do |t|
                 puts "%04x" % t

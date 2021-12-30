@@ -7,12 +7,12 @@ module Config
         # We should not be able to create an instance of the abstract IOPort class.
         def test_no_initialize_abstract
             e = assert_raises NotImplementedError do
-                _ = Zemu::Config::IOPort.new do
+                _ = Zemu::Config::BusDevice.new do
                     name "io"
                 end
             end
 
-            assert_equal "Cannot construct an instance of the abstract class Zemu::Config::IOPort.", e.message
+            assert_equal "Cannot construct an instance of the abstract class Zemu::Config::BusDevice.", e.message
         end
 
         # We should be able to initialize an instance of the serial class.

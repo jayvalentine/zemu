@@ -2,8 +2,7 @@
 
 #include <stdio.h>
 
-#include "memory.h"
-#include "io.h"
+#include "bus.h"
 
 zusize zemu_debug_step(Z80 * instance);
 

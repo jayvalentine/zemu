@@ -75,10 +75,83 @@ module Zemu
     # @param [String] compiler The path to the compiler to be used for compiling the emulator executable.
     #
     class Config < ConfigObject
+        # Bus Device.
+        #
+        # Represents a device connected to the I/O
+        # or memory buses, or both.
+        class BusDevice < ConfigObject
+            # Constructor.
+            #
+            # This object should not be constructed directly.
+            def initialize
+                if self.class == Zemu::Config::BusDevice
+                    raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::BusDevice."
+                end
+
+                super
+            end
+
+            # Setup to be performed on initialising the emulator
+            # instance.
+            def when_setup
+                ""
+            end
+
+            # Memory bus write handler.
+            #
+            # Defines C code generated for handling memory
+            # writes for this device.
+            def when_mem_write
+                ""
+            end
+
+            # Memory bus read handler.
+            #
+            # Defines C code generated for handling memory
+            # reads for this device.
+            def when_mem_read
+                ""
+            end
+
+            # IO bus write handler.
+            #
+            # Defines C code generated for handling IO
+            # writes for this device.
+            def when_io_write
+                ""
+            end
+
+            # IO bus read handler.
+            #
+            # Defines C code generated for handling IO
+            # reads for this device.
+            def when_io_read
+                ""
+            end
+
+            # Clock handler.
+            #
+            # Defines C code which executes for every
+            # clock cycle.
+            def when_clock
+                ""
+            end
+
+            # FFI functions provided by this device.
+            def functions
+                []
+            end
+
+            # Parameters for a bus device.
+            def params
+                %w(name)
+            end
+        end
+
         # Memory object.
         #
         # This is an abstract class from which all other memory objects inherit.
-        class Memory < ConfigObject
+        class Memory < BusDevice
             # Constructor.
             #
             # Do not use, as this is an abstract class. Use one of the subclasses instead.
@@ -107,15 +180,50 @@ module Zemu
                 end
             end
 
-            # @return [Boolean] true if this memory section is readonly, false otherwise.
+            # Is this memory read-only?
             def readonly?
-                return false
+                false
+            end
+
+            # Defines generated C to declare this memory block.
+            def when_setup
+                init_array = []
+                contents.each_with_index do |b, i|
+                    init_array << ((i % 16 == 0) ? "\n    " : "") + ("0x%02x, " % b)
+                end
+
+<<-eos
+/* Initialization memory block "#{name}" */
+#{if self.readonly? then "const" else "" end} zuint8 zemu_memory_block_#{name}[0x#{size.to_s(16)}] =
+{#{init_array.join("")}
+};
+eos
+            end
+
+            # Defines generated C to handle reading this memory block.
+            def when_mem_read
+<<-eos
+if (address_32 >= 0x#{address.to_s(16)} && address_32 < 0x#{(address + size).to_s(16)})
+{
+    return zemu_memory_block_#{name}[address_32 - 0x#{address.to_s(16)}];
+}
+eos
+            end
+
+            # Defines generated C to handle writing to this memory block.
+            def when_mem_write
+<<-eos
+if (address_32 >= 0x#{address.to_s(16)} && address_32 < 0x#{(address + size).to_s(16)})
+{
+    zemu_memory_block_#{name}[address_32 - 0x#{address.to_s(16)}] = value;
+}
+eos
             end
 
             # Valid parameters for this object.
             # Should be extended by subclasses but NOT REPLACED.
             def params
-                return %w(name address size)
+                super + %w(address size)
             end
 
             # Reads the contents of a file in binary format and
@@ -155,8 +263,17 @@ module Zemu
                 super
             end
 
+            # Is this memory block readonly?
             def readonly?
-                return true
+                true
+            end
+
+            # Defines generated C to handle writing to this
+            # memory block. Because this block is read-only,
+            # no code is generated to handle writes.
+            def when_mem_write
+                # Cannot write to read-only memory.
+                ""
             end
         end
 
@@ -165,169 +282,13 @@ module Zemu
         # Represents a block of memory which can be read and written.
         class RAM < Memory
         end
-
-        # Input/Output Port object
-        #
-        # Represents an input/output device assigned to one or more ports.
-        #
-        # This is an abstract class and cannot be instantiated directly.
-        # The when_setup, when_read, and when_write methods can be used to define
-        # the behaviour of a subclass.
-        #
-        # @example
-        #    class MyIODevice < IOPort
-        #        # Extend the parameters of the object so we can define a port.
-        #        def params
-        #            super + "port"
-        #        end
-        #
-        #        def initialize
-        #            super
-        # 
-        #            # Define the setup for the IO device.
-        #            # This is some global C code that ends up in "io.c".
-        #            # Parameters can be used here, as the block is instance-evaluated.
-        #            when_setup do
-        #                %Q(zuint8 #{name}_value = 42;)
-        #            end
-        #
-        #            # Define the logic when reading from an IO port.
-        #            # The C variable "port" takes the value of the 8-bit port
-        #            # address being read from, and should be used to identify
-        #            # if this IO device is the one being used.
-        #            when_read do
-        #                %Q(if (port == #{port}) return #{name}_value;)
-        #            end
-        #
-        #            # Define the logic when writing to the IO port.
-        #            # Similar to #when_read, but we have access to an extra
-        #            # C variable, "value". This is the value being written
-        #            # to the IO port.
-        #            when_write do
-        #                %Q(if (port == #{port}) #{name}_value = value;)
-        #            end
-        #        end
-        #    end
-        #
-        #    # The subclass can now be declared as below:
-        #    device = MyIODevice.new do
-        #        name "myDevice"
-        #        port 11
-        #    end
-        #
-        #
-        class IOPort < ConfigObject
-            attr_reader :io_type
-
-            # Constructor.
-            #
-            # Do not use, as this is an abstract class. Use one of the subclasses instead.
-            def initialize
-                if self.class == Zemu::Config::IOPort
-                    raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::IOPort."
-                end
-
-                @ports = []
-                @setup_block = nil
-                @read_block = nil
-                @write_block = nil
-                @clock_block = nil
-
-                super
-            end
-
-            # Defines the setup behaviour of this IO device.
-            #
-            # Expects a block, the return value of which is a string
-            # containing all data and function declarations required by this IO device.
-            #
-            # The block will be instance-evaluated at build-time, so it is possible to use
-            # instance variables of the IO device.
-            def when_setup(&block)
-                @setup_block = block
-            end
-
-            # Defines the read behaviour of this IO device.
-            #
-            # Expects a block, the return value of which is a string
-            # containing the behaviour of this IO device when a value is read from the IO bus.
-            # Care must be taken to ensure that this functionality does not conflict with that of
-            # any other IO devices.
-            #
-            # The block will be instance-evaluated at build-time, so it is possible to use
-            # instance variables of the IO device.
-            def when_read(&block)
-                @read_block = block
-            end
-
-            # Defines the write behaviour of this IO device.
-            #
-            # Expects a block, the return value of which is a string
-            # containing the behaviour of this IO device when a value is written to the IO bus.
-            # Care must be taken to ensure that this functionality does not conflict with that of
-            # any other IO devices.
-            #
-            # The block will be instance-evaluated at build-time, so it is possible to use
-            # instance variables of the IO device.
-            def when_write(&block)
-                @write_block = block
-            end
-
-            # Defines the per-cycle behaviour of this IO device.
-            #
-            # Expects a block, the return value of which is a string
-            # defining the behaviour of the IO device on each system clock cycle.
-            # Care must be taken to ensure that this functionality does not conflict with that of
-            # any other IO devices.
-            #
-            # The block will be instance-evaluated at build-time, so it is possible to use
-            # instance variables of the IO device.
-            def when_clock(&block)
-                @clock_block = block
-            end
-
-            # Evaluates the when_setup block of this IO device and returns the resulting string.
-            def setup
-                return instance_eval(&@setup_block) unless @setup_block.nil?
-                return ""
-            end
-
-            # Evaluates the when_read block of this IO device and returns the resulting string.
-            def read
-                return instance_eval(&@read_block) unless @read_block.nil?
-                return ""
-            end
-
-            # Evaluates the when_write block of this IO device and returns the resulting string.
-            def write
-                return instance_eval(&@write_block) unless @write_block.nil?
-                return ""
-            end
-
-            # Evaluates the when_clock block of this IO device and returns the resulting string.
-            def clock
-                return instance_eval(&@clock_block) unless @clock_block.nil?
-                return ""
-            end
-
-            # Defines FFI API which will be available to the instance wrapper if this IO device is used.
-            def functions
-                []
-            end
-
-            # Valid parameters for this object.
-            # Should be extended by subclasses but NOT REPLACED.
-            def params
-                %w(name)
-            end
-        end
         
         # Serial Input/Output object
         #
         # Represents a serial connection between the emulated CPU
         # and the host machine, with input and output mapped to Z80 I/O
         # ports.
-        class SerialPort < IOPort
+        class SerialPort < BusDevice
             # Constructor.
             #
             # Takes a block in which the parameters of the serial port
@@ -347,80 +308,84 @@ module Zemu
             #
             def initialize
                 super
+            end
 
-                when_setup do
-                    "SerialBuffer io_#{name}_buffer_master = { .head = 0, .tail = 0 };\n" +
-                    "SerialBuffer io_#{name}_buffer_slave = { .head = 0, .tail = 0 };\n" +
-                    "\n" +
-                    "zusize zemu_io_#{name}_buffer_size(void)\n" +
-                    "{\n" +
-                    "    zusize start = io_#{name}_buffer_slave.head;\n" +
-                    "    zusize end = io_#{name}_buffer_slave.tail\n;" +
-                    "    if (end < start) end += ZEMU_IO_SERIAL_BUFFER_SIZE;\n" +
-                    "    return end - start;\n" +
-                    "}\n" +
-                    "\n" +
-                    "void zemu_io_#{name}_slave_puts(zuint8 val)\n" +
-                    "{\n" +
-                    "    io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.tail] = val;\n" +
-                    "    io_#{name}_buffer_slave.tail++;\n" +
-                    "    if (io_#{name}_buffer_slave.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                    "        io_#{name}_buffer_slave.tail = 0;\n" +
-                    "}\n" +
-                    "\n" +
-                    "zuint8 zemu_io_#{name}_slave_gets(void)\n" +
-                    "{\n" +
-                    "    zuint8 val = io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.head];\n" +
-                    "    io_#{name}_buffer_master.head++;\n" +
-                    "    if (io_#{name}_buffer_master.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                    "        io_#{name}_buffer_master.head = 0;\n" +
-                    "\n" +
-                    "    return val;\n" +
-                    "}\n" +
-                    "\n" +
-                    "void zemu_io_#{name}_master_puts(zuint8 val)\n" +
-                    "{\n" +
-                    "    io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.tail] = val;\n" +
-                    "    io_#{name}_buffer_master.tail++;\n" +
-                    "    if (io_#{name}_buffer_master.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                    "        io_#{name}_buffer_master.tail = 0;\n" +
-                    "}\n" +
-                    "\n" +
-                    "zuint8 zemu_io_#{name}_master_gets(void)\n" +
-                    "{\n" +
-                    "    zuint8 val = io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.head];\n" +
-                    "    io_#{name}_buffer_slave.head++;\n" +
-                    "    if (io_#{name}_buffer_slave.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                    "        io_#{name}_buffer_slave.head = 0;\n" +
-                    "\n" +
-                    "    return val;\n" +
-                    "}\n"
-                end
+            # Defines generated C to declare the serial device.
+            def when_setup
+                "SerialBuffer io_#{name}_buffer_master = { .head = 0, .tail = 0 };\n" +
+                "SerialBuffer io_#{name}_buffer_slave = { .head = 0, .tail = 0 };\n" +
+                "\n" +
+                "zusize zemu_io_#{name}_buffer_size(void)\n" +
+                "{\n" +
+                "    zusize start = io_#{name}_buffer_slave.head;\n" +
+                "    zusize end = io_#{name}_buffer_slave.tail\n;" +
+                "    if (end < start) end += ZEMU_IO_SERIAL_BUFFER_SIZE;\n" +
+                "    return end - start;\n" +
+                "}\n" +
+                "\n" +
+                "void zemu_io_#{name}_slave_puts(zuint8 val)\n" +
+                "{\n" +
+                "    io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.tail] = val;\n" +
+                "    io_#{name}_buffer_slave.tail++;\n" +
+                "    if (io_#{name}_buffer_slave.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                "        io_#{name}_buffer_slave.tail = 0;\n" +
+                "}\n" +
+                "\n" +
+                "zuint8 zemu_io_#{name}_slave_gets(void)\n" +
+                "{\n" +
+                "    zuint8 val = io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.head];\n" +
+                "    io_#{name}_buffer_master.head++;\n" +
+                "    if (io_#{name}_buffer_master.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                "        io_#{name}_buffer_master.head = 0;\n" +
+                "\n" +
+                "    return val;\n" +
+                "}\n" +
+                "\n" +
+                "void zemu_io_#{name}_master_puts(zuint8 val)\n" +
+                "{\n" +
+                "    io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.tail] = val;\n" +
+                "    io_#{name}_buffer_master.tail++;\n" +
+                "    if (io_#{name}_buffer_master.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                "        io_#{name}_buffer_master.tail = 0;\n" +
+                "}\n" +
+                "\n" +
+                "zuint8 zemu_io_#{name}_master_gets(void)\n" +
+                "{\n" +
+                "    zuint8 val = io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.head];\n" +
+                "    io_#{name}_buffer_slave.head++;\n" +
+                "    if (io_#{name}_buffer_slave.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
+                "        io_#{name}_buffer_slave.head = 0;\n" +
+                "\n" +
+                "    return val;\n" +
+                "}\n"
+            end
 
-                when_read do
-                    "if (port == #{in_port})\n" +
-                    "{\n" +
-                    "    return zemu_io_#{name}_slave_gets();\n" +
-                    "}\n" +
-                    "else if (port == #{ready_port})\n" +
-                    "{\n" +
-                    "    if (io_#{name}_buffer_master.head == io_#{name}_buffer_master.tail)\n" +
-                    "    {\n" +
-                    "        return 0;\n" +
-                    "    }\n" +
-                    "    else\n" +
-                    "    {\n" +
-                    "        return 1;\n" +
-                    "    }\n" +
-                    "}\n"
-                end
+            # Defines generated C to handle reading from serial port's
+            # registers.
+            def when_io_read
+                "if (port == #{in_port})\n" +
+                "{\n" +
+                "    return zemu_io_#{name}_slave_gets();\n" +
+                "}\n" +
+                "else if (port == #{ready_port})\n" +
+                "{\n" +
+                "    if (io_#{name}_buffer_master.head == io_#{name}_buffer_master.tail)\n" +
+                "    {\n" +
+                "        return 0;\n" +
+                "    }\n" +
+                "    else\n" +
+                "    {\n" +
+                "        return 1;\n" +
+                "    }\n" +
+                "}\n"
+            end
 
-                when_write do
-                    "if (port == #{out_port})\n" +
-                    "{\n" +
-                    "    zemu_io_#{name}_slave_puts(value);\n" +
-                    "}\n"
-                end
+            # Defines generated C to handle writing to the serial port's registers.
+            def when_io_write
+                "if (port == #{out_port})\n" +
+                "{\n" +
+                "    zemu_io_#{name}_slave_puts(value);\n" +
+                "}\n"
             end
 
             # Defines FFI API which will be available to the instance wrapper if this IO device is used.
@@ -433,7 +398,7 @@ module Zemu
             end
 
             # Valid parameters for a SerialPort, along with those
-            # defined in [Zemu::Config::IOPort].
+            # defined in [Zemu::Config::BusDevice].
             def params
                 super + %w(in_port out_port ready_port)
             end
@@ -443,7 +408,7 @@ module Zemu
         #
         # Represents a device with a sequence of sectors of a fixed size,
         # which can be accessed via IO instructions as an IDE drive.
-        class BlockDrive < IOPort
+        class BlockDrive < BusDevice
             # Constructor.
             #
             # Takes a block in which the parameters of the block drive
@@ -478,8 +443,10 @@ module Zemu
                         raise RangeError, "Initialization file for Zemu::Config::BlockDrive '#{name}' is of wrong size."
                     end
                 end
+            end
 
-                when_setup do
+            # Defines generated C to declare the block device.
+            def when_setup
 <<-eos
 #include <stdio.h>
 
@@ -520,9 +487,11 @@ zuint8 zemu_io_#{name}_readbyte(zuint32 sector, zuint32 offset)
     return sector_data_#{name}[offset];
 }
 eos
-                end
+            end
 
-                when_read do
+            # Defines generated C to handle reading the block drive's
+            # registers.
+            def when_io_read
 <<-eos
 if (port == #{base_port})
 {
@@ -539,9 +508,11 @@ else if (port == #{base_port+7})
     return drive_status_#{name};
 }
 eos
-                end
+            end
 
-                when_write do
+            # Defines generated C to handle writing to the block drive's
+            # registers.
+            def when_io_write
 <<-eos
 if (port == #{base_port})
 {
@@ -604,7 +575,6 @@ else if (port == #{base_port+7})
     }
 }
 eos
-                end
             end
 
             # Array of sectors of this drive.
@@ -645,7 +615,7 @@ eos
             end
 
             # Valid parameters for a BlockDrive, along with those
-            # defined in [Zemu::Config::IOPort].
+            # defined in [Zemu::Config::BusDevice].
             def params
                 super + %w(base_port sector_size num_sectors)
             end
@@ -656,30 +626,27 @@ eos
         # Represents a timer device, the period of which can be controlled
         # by the CPU through an IO port. The timer generates an NMI once this
         # period has expired. The timer can be reset via a control port.
-        class Timer < IOPort
-            def initialize
-                super
+        class Timer < BusDevice
+            # Defines generated C that sets up the timer.
+            def when_setup
+                "zuint8 io_#{name}_count;\n" +
+                "zuint8 io_#{name}_running = 0;\n"
+            end
 
-                when_setup do
-                    "zuint8 io_#{name}_count;\n" +
-                    "zuint8 io_#{name}_running = 0;\n"
-                end
+            # Defines generated C that handles writing to the timer's
+            # registers.
+            def when_io_write
+                "if (port == #{count_port}) io_#{name}_count = value;\n" +
+                "else if (port == #{control_port}) io_#{name}_running = value;\n"
+            end
 
-                when_read do
-                end
-
-                when_write do
-                    "if (port == #{count_port}) io_#{name}_count = value;\n" +
-                    "else if (port == #{control_port}) io_#{name}_running = value;\n"
-                end
-
-                when_clock do
-                    "if (io_#{name}_running)\n" +
-                    "{\n" +
-                    "    if (io_#{name}_count > 0) io_#{name}_count--;\n" +
-                    "    else zemu_io_nmi(instance);\n" +
-                    "}\n"
-                end
+            # Defines generated C that handles a clock tick for the timer.
+            def when_clock
+                "if (io_#{name}_running)\n" +
+                "{\n" +
+                "    if (io_#{name}_count > 0) io_#{name}_count--;\n" +
+                "    else zemu_io_nmi(instance);\n" +
+                "}\n"
             end
 
             # Valid parameters for a Timer, along with those defined in
@@ -694,11 +661,8 @@ eos
             return binding
         end
 
-        # The memory sections of this configuration object.
-        attr_reader :memory
-
-        # The IO devices of this configuration object.
-        attr_reader :io
+        # The bus devices of this configuration object.
+        attr_reader :devices
 
         # Parameters accessible by this configuration object.
         def params
@@ -737,8 +701,7 @@ eos
         #
         # @raise [Zemu::ConfigError] Raised if the +name+ parameter is not set, or contains whitespace.
         def initialize
-            @memory = []
-            @io = []
+            @devices = []
 
             super
 
@@ -753,16 +716,29 @@ eos
 
         # Adds a new memory section to this configuration.
         #
+        # Deprecated - retained only for backwards compatibility.
+        # Use add_device instead.
+        #
         # @param [Zemu::Config::Memory] mem The memory object to add.
         def add_memory(mem)
-            @memory << mem
+            @devices << mem
         end
 
         # Adds a new IO device to this configuration.
         #
-        # @param [Zemu::Config::IOPort] io The IO device to add.
+        # Deprecated - retained only for backwards compatibility.
+        # Use add_device instead.
+        #
+        # @param [Zemu::Config::BusDevice] io The IO device to add.
         def add_io(io)
-            @io << io
+            @devices << io
+        end
+
+        # Adds a new device to the bus for this configuration.
+        #
+        # @param [Zemu::Config::BusDevice] device The device to add.
+        def add_device(device)
+            @devices << device
         end
     end
 

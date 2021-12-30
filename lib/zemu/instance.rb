@@ -61,9 +61,9 @@ module Zemu
         end
 
         def initialize(configuration)
-            # Methods defined by IO devices that we make
+            # Methods defined by bus devices that we make
             # accessible to the user.
-            @io_methods = []
+            @device_methods = []
 
             @clock = configuration.clock_speed
             @serial_delay = configuration.serial_delay
@@ -275,10 +275,10 @@ module Zemu
             wrapper.attach_function :zemu_debug_get_memory, [:uint16], :uint8
             wrapper.attach_function :zemu_debug_set_memory, [:uint16, :uint8], :void
 
-            configuration.io.each do |device|
+            configuration.devices.each do |device|
                 device.functions.each do |f|
                     wrapper.attach_function(f["name"].to_sym, f["args"], f["return"])
-                    @io_methods << f["name"].to_sym
+                    @device_methods << f["name"].to_sym
                 end
             end
 
@@ -287,7 +287,7 @@ module Zemu
 
         # Redirects calls to I/O FFI functions.
         def method_missing(method, *args)
-            if @io_methods.include? method
+            if @device_methods.include? method
                 return @wrapper.send(method)
             end
 

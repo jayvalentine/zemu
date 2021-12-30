@@ -13,12 +13,13 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.5.0
+## New in v0.6.0
 
-### Added Symbols class
+### Bus Devices
 
-The new Symbols class allows for accessing
-loaded symbols in a variety of ways.
+Memory and IO devices are no longer separate,
+allowing for devices that are active on both the memory
+and IO buses (e.g. banked memory controlled by IO port).
 
 ## Usage
 

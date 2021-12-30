@@ -1,0 +1,88 @@
+#include "bus.h"
+
+<% devices.each do |device| %>
+<%= device.when_setup %>
+<% end %>
+
+zuint8 zemu_memory_read(void * context, zuint16 address)
+{
+    zuint32 address_32 = address;
+<% devices.each do |mem| %>
+<%= mem.when_mem_read %>
+<% end %>
+    /* Unmapped memory has a value of 0. */
+    return 0;
+}
+
+void zemu_memory_write(void * context, zuint16 address, zuint8 value)
+{
+    zuint32 address_32 = address;
+<% devices.each do |mem| %>
+<%= mem.when_mem_write %>
+<% end %>
+}
+
+zuint8 zemu_memory_peek(zuint16 address)
+{
+    zuint32 address_32 = address;
+<% devices.each do |mem| %>
+<%= mem.when_mem_read %>
+<% end %>
+    /* Unmapped memory has a value of 0. */
+    return 0;
+}
+
+void zemu_memory_poke(zuint16 address, zuint8 value)
+{
+    zuint32 address_32 = address;
+<% devices.each do |mem| %>
+<%= mem.when_mem_write %>
+<% end %>
+}
+
+void zemu_io_nmi(Z80 * instance)
+{
+    z80_nmi(instance);
+}
+
+void zemu_io_int_on(Z80 * instance)
+{
+    z80_int(instance, TRUE);
+}
+
+void zemu_io_int_off(Z80 * instance)
+{
+    z80_int(instance, FALSE);
+}
+
+zuint8 zemu_io_in(void * context, zuint16 port)
+{
+    /* Z80 IO ports occupy the lower half of the address bus.
+     * We cannot assume that the top half is valid.
+     */
+    port &= 0x00FF;
+
+<% devices.each do |device| %>
+<%= device.when_io_read %>
+<% end %>
+    return 0;
+}
+
+void zemu_io_out(void * context, zuint16 port, zuint8 value)
+{
+    /* Z80 IO ports occupy the lower half of the address bus.
+     * We cannot assume that the top half is valid.
+     */
+    port &= 0x00FF;
+
+<% devices.each do |device| %>
+<%= device.when_io_write %>
+<% end %>
+}
+
+void zemu_io_clock(Z80 * instance)
+{
+<% devices.each do |device| %>
+<%= device.when_clock %>
+<% end %>
+}

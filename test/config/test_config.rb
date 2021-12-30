@@ -27,9 +27,9 @@ module Config
                 end)
             end
 
-            assert_equal "my_rom", conf.memory[0].name
-            assert_equal 0x8000, conf.memory[0].address
-            assert_equal 0x1000, conf.memory[0].size
+            assert_equal "my_rom", conf.devices[0].name
+            assert_equal 0x8000, conf.devices[0].address
+            assert_equal 0x1000, conf.devices[0].size
         end
 
         # A configuration can be given a clock speed in Hz.
