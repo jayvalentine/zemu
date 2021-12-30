@@ -13,6 +13,19 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
+## Installation
+
+Zemu can be installed from RubyGems.org:
+
+```
+gem install zemu
+```
+
+In addition to the gem, a compatible compiler must be installed.
+Currently, the only supported compiler is clang. If this is not already
+installed on your system, you must follow system-appropriate installation instructions
+to install it before you can use Zemu.
+
 ## New in v<%= version %>
 
 <% changes.each do |path| %><%= File.read(path) %><% end %>

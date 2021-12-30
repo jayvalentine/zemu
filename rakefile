@@ -153,10 +153,20 @@ namespace :release do
     def build_readme(major, minor, refresh)
         readme_template = ERB.new File.read(File.join(HERE, "README.md.erb"))
 
-        changes = Dir.glob(File.join(HERE, "changelog/*.md"))
+        changes = []
+        if (major == MAJOR) && (minor == MINOR) && (refresh == REFRESH)
+            changes = Dir.glob(File.join(HERE, "changelog/#{major}.#{minor}.#{refresh}/*.md"))
+        else
+            changes = Dir.glob(File.join(HERE, "changelog/*.md"))
+        end
+
         version = "#{major}.#{minor}.#{refresh}"
 
         File.write(File.join(HERE, "README.md"), readme_template.result(binding))
+
+        if (major == MAJOR) && (minor == MINOR) && (refresh == REFRESH)
+            return
+        end
 
         archive_path = File.join(HERE, "changelog", version)
 
@@ -166,6 +176,11 @@ namespace :release do
             FileUtils.cp(path, File.join(archive_path, File.basename(path)))
             FileUtils.rm(path)
         end
+    end
+
+    desc "Update readme without changing version"
+    task :readme do
+        build_readme(MAJOR, MINOR, REFRESH)
     end
 
     desc "Release checklist"
