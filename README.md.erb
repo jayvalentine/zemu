@@ -2,8 +2,12 @@
 
 ## Introduction
 
-Zemu is a configurable Z80 emulator, mainly intended for integration into build and test suites.
+Zemu is a configurable Z80 system emulation framework, mainly intended for integration into build and test suites.
 However, it can also be used as an interactive emulator from the command-line.
+
+A user can provide a configuration, specifying system details like memory mapping and available I/O devices,
+which Zemu then uses to generate an emulation instance. This instance can then be programmatically interacted
+with, for example to perform virtualised testing of Z80 software.
 
 ## License
 
