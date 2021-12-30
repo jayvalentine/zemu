@@ -238,4 +238,38 @@ namespace :release do
         # Build the gem.
         system "gem build zemu.gemspec"
     end
+
+    desc "Release a major version"
+    task :major => :check do
+        clean_gems
+
+        version = File.read(File.join(HERE, "version.rb"))
+
+        major = 0
+
+        # Get the current major version.
+        m = version.match(/MAJOR = (\d+)/)
+        if m.nil?
+            abort("Could not determine major version.")
+        else
+            major = m[1].to_i
+        end
+
+        # Bump by 1.
+        major += 1
+
+        version.gsub!(/MAJOR = \d+/, "MAJOR = #{refresh}")
+
+        # Reset minor and refresh numbers to 0.
+        version.gsub!(/MINOR = \d+/, "MINOR = 0")
+        version.gsub!(/REFRESH = \d+/, "REFRESH = 0")
+
+        File.write("version.rb", version)
+
+        # Build the readme.
+        build_readme(major, 0, 0)
+
+        # Build the gem.
+        system "gem build zemu.gemspec"
+    end
 end
