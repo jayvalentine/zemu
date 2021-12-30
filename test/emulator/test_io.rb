@@ -4,48 +4,31 @@ require 'zemu'
 class WriteOnlyPort < Zemu::Config::BusDevice
     def initialize
         super
+
+        @reg_value = 0
     end
 
-    def when_setup
-<<-EOF
-zuint8 #{name}_value = 0;
-
-zuint8 zemu_io_#{name}_value(void)
-{
-return #{name}_value;
-}
-EOF
-    end
-
-    # Cannot read from port, but we need
-    # to return a value.
-    def when_io_read
-<<-EOF
-if (port == #{port}) return 0;
-EOF
+    def io_read(port)
+        nil
     end
         
-    def when_io_write
-<<-EOF
-if (port == #{port})
-{
-#{name}_value = value;
-}
-EOF
+    def io_write(port, value)
+        if port == wport
+            @reg_value = value
+        end
+    end
+
+    def register_value
+        @reg_value
     end
 
     def functions
         [
-            {
-                "name" => "zemu_io_#{name}_value".to_sym,
-                "args" => [],
-                "return" => :uint8
-            },
         ]
     end
 
     def params
-        super + %w(port)
+        super + %w(wport)
     end
 end
 
@@ -98,7 +81,7 @@ EOF
 
             add_io (WriteOnlyPort.new do
                 name "wport"
-                port 0x80
+                wport 0x80
             end)
         end
 
@@ -114,7 +97,7 @@ EOF
             assert @instance.break?, "Did not hit breakpoint on iteration #{i}!"
 
             # Check value of the port.
-            actual_value = @instance.zemu_io_wport_value
+            actual_value = @instance.device('wport').register_value
             assert_equal port_values[i], actual_value, "Wrong value on iteration #{i}!"
         end
 
@@ -123,7 +106,7 @@ EOF
         assert @instance.halted?, "Instance did not halt!"
 
         # Check final value of port.
-        actual_value = @instance.zemu_io_wport_value
+        actual_value = @instance.device('wport').register_value
         assert_equal port_values[5], actual_value, "Wrong final port value!"
     end
 end

@@ -60,7 +60,11 @@ module Zemu
             UNDEFINED = -1
         end
 
+        
+
         def initialize(configuration)
+            @devices = configuration.devices
+
             # Methods defined by bus devices that we make
             # accessible to the user.
             @device_methods = []
@@ -73,12 +77,88 @@ module Zemu
             @serial = []
 
             @instance = @wrapper.zemu_init
+
+            # Declare handlers.
+            # Memory write handler.
+            @mem_write = Proc.new do |addr, value|
+                @devices.each do |d|
+                    d.mem_write(addr, value)
+                end
+            end
+
+            # Memory read handler.
+            @mem_read = Proc.new do |addr|
+                r = 0
+                @devices.each do |d|
+                    v = d.mem_read(addr)
+                    unless v.nil?
+                        r = v
+                    end
+                end
+
+                r
+            end
+
+            # IO write handler.
+            @io_write = Proc.new do |port, value|
+                @devices.each do |d|
+                    d.io_write(port, value)
+                end
+            end
+
+            # IO read handler.
+            @io_read = Proc.new do |port|
+                r = 0
+                @devices.each do |d|
+                    v = d.io_read(port)
+                    unless v.nil?
+                        r = v
+                    end
+                end
+
+                r
+            end
+
+            # IO read handler.
+            @io_clock = Proc.new do
+                @devices.each do |d|
+                    d.clock()
+                end
+
+                bus_state = 0
+
+                if @devices.any? { |d| d.nmi? }
+                    bus_state |= 1
+                end
+
+                bus_state
+            end
+
+            # Attach handlers.
+            @wrapper.zemu_set_mem_write_handler(@mem_write)
+            @wrapper.zemu_set_mem_read_handler(@mem_read)
+            @wrapper.zemu_set_io_write_handler(@io_write)
+            @wrapper.zemu_set_io_read_handler(@io_read)
+            @wrapper.zemu_set_io_clock_handler(@io_clock)
+
             @wrapper.zemu_power_on(@instance)
             @wrapper.zemu_reset(@instance)
 
             @state = RunState::UNDEFINED
 
             @breakpoints = {}
+        end
+
+        # Returns the device with the given name, or nil
+        # if no such device exists.
+        def device(name)
+            @devices.each do |d|
+                if d.name == name
+                    return d
+                end
+            end
+
+            nil
         end
 
         # Returns the clock speed of this instance in Hz.
@@ -256,6 +336,21 @@ module Zemu
             wrapper.extend FFI::Library
 
             wrapper.ffi_lib [File.join(configuration.output_directory, "#{configuration.name}.so")]
+
+            # Handler types for handling bus accesses.
+            wrapper.callback :mem_write_handler, [:uint32, :uint8], :void
+            wrapper.callback :mem_read_handler, [:uint32], :uint8
+
+            wrapper.callback :io_write_handler, [:uint8, :uint8], :void
+            wrapper.callback :io_read_handler, [:uint8], :uint8
+            wrapper.callback :io_clock_handler, [:void], :uint8
+
+            wrapper.attach_function :zemu_set_mem_write_handler, [:mem_write_handler], :void
+            wrapper.attach_function :zemu_set_mem_read_handler, [:mem_read_handler], :void
+
+            wrapper.attach_function :zemu_set_io_write_handler, [:io_write_handler], :void
+            wrapper.attach_function :zemu_set_io_read_handler, [:io_read_handler], :void
+            wrapper.attach_function :zemu_set_io_clock_handler, [:io_clock_handler], :void
 
             wrapper.attach_function :zemu_init, [], :pointer
             wrapper.attach_function :zemu_free, [:pointer], :void

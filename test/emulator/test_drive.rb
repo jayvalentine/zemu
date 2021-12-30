@@ -77,14 +77,14 @@ eos
         @instance = Zemu.start(conf)
 
         # Check bytes in specific positions.
-        assert_equal 22, @instance.drive_readbyte(0, 12)
-        assert_equal 23, @instance.drive_readbyte(1, 42)
-        assert_equal 24, @instance.drive_readbyte(44, 511)
-        assert_equal 25, @instance.drive_readbyte(63, 0)
+        assert_equal 22, @instance.device('block_drive').read_byte(0, 12)
+        assert_equal 23, @instance.device('block_drive').read_byte(1, 42)
+        assert_equal 24, @instance.device('block_drive').read_byte(44, 511)
+        assert_equal 25, @instance.device('block_drive').read_byte(63, 0)
 
-        assert_equal 26, @instance.drive_readbyte(0, 0)
-        assert_equal 26, @instance.drive_readbyte(13, 13)
-        assert_equal 26, @instance.drive_readbyte(9, 511)
+        assert_equal 26, @instance.device('block_drive').read_byte(0, 0)
+        assert_equal 26, @instance.device('block_drive').read_byte(13, 13)
+        assert_equal 26, @instance.device('block_drive').read_byte(9, 511)
     end
 
     # Test that an emulated CPU can access sectors of a block device.

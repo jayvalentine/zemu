@@ -1,43 +1,59 @@
 #include "bus.h"
 
-<% devices.each do |device| %>
-<%= device.when_setup %>
-<% end %>
+mem_write_handler_t * mem_write_handler;
+mem_read_handler_t * mem_read_handler;
+
+io_write_handler_t * io_write_handler;
+io_read_handler_t * io_read_handler;
+io_clock_handler_t * io_clock_handler;
+
+void zemu_set_mem_write_handler(mem_write_handler_t * h)
+{
+    mem_write_handler = h;
+}
+
+void zemu_set_mem_read_handler(mem_read_handler_t * h)
+{
+    mem_read_handler = h;
+}
+
+void zemu_set_io_write_handler(io_write_handler_t * h)
+{
+    io_write_handler = h;
+}
+
+void zemu_set_io_read_handler(io_read_handler_t * h)
+{
+    io_read_handler = h;
+}
+
+void zemu_set_io_clock_handler(io_clock_handler_t * h)
+{
+    io_clock_handler = h;
+}
 
 zuint8 zemu_memory_read(void * context, zuint16 address)
 {
     zuint32 address_32 = address;
-<% devices.each do |mem| %>
-<%= mem.when_mem_read %>
-<% end %>
-    /* Unmapped memory has a value of 0. */
-    return 0;
+    return mem_read_handler(address_32);
 }
 
 void zemu_memory_write(void * context, zuint16 address, zuint8 value)
 {
     zuint32 address_32 = address;
-<% devices.each do |mem| %>
-<%= mem.when_mem_write %>
-<% end %>
+    mem_write_handler(address_32, value);
 }
 
 zuint8 zemu_memory_peek(zuint16 address)
 {
     zuint32 address_32 = address;
-<% devices.each do |mem| %>
-<%= mem.when_mem_read %>
-<% end %>
-    /* Unmapped memory has a value of 0. */
-    return 0;
+    return mem_read_handler(address_32);
 }
 
 void zemu_memory_poke(zuint16 address, zuint8 value)
 {
     zuint32 address_32 = address;
-<% devices.each do |mem| %>
-<%= mem.when_mem_write %>
-<% end %>
+    mem_write_handler(address_32, value);
 }
 
 void zemu_io_nmi(Z80 * instance)
@@ -62,10 +78,7 @@ zuint8 zemu_io_in(void * context, zuint16 port)
      */
     port &= 0x00FF;
 
-<% devices.each do |device| %>
-<%= device.when_io_read %>
-<% end %>
-    return 0;
+    return io_read_handler((zuint8)port);
 }
 
 void zemu_io_out(void * context, zuint16 port, zuint8 value)
@@ -75,14 +88,12 @@ void zemu_io_out(void * context, zuint16 port, zuint8 value)
      */
     port &= 0x00FF;
 
-<% devices.each do |device| %>
-<%= device.when_io_write %>
-<% end %>
+    io_write_handler((zuint8)port, value);
 }
 
 void zemu_io_clock(Z80 * instance)
 {
-<% devices.each do |device| %>
-<%= device.when_clock %>
-<% end %>
+    zuint8 bus_state = io_clock_handler();
+
+    if (bus_state & 0x01) zemu_io_nmi(instance);
 }

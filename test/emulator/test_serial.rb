@@ -46,7 +46,7 @@ class SerialTest < Minitest::Test
 
         @instance = Zemu.start(conf)
 
-        @instance.serial_puts "Hello"
+        @instance.device('serial').puts("Hello")
 
         # Run until halt
         @instance.continue
@@ -108,7 +108,7 @@ class SerialTest < Minitest::Test
 
         assert @instance.halted?
 
-        assert_equal "Hello", @instance.serial_gets(5)
+        assert_equal "Hello", @instance.device('serial').gets(5)
     end
 
     def test_write_get_all
@@ -158,7 +158,7 @@ class SerialTest < Minitest::Test
 
         assert @instance.halted?
 
-        assert_equal "H", @instance.serial_gets(1)
-        assert_equal "ello", @instance.serial_gets()
+        assert_equal "H", @instance.device('serial').gets(1)
+        assert_equal "ello", @instance.device('serial').gets()
     end
 end

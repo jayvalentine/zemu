@@ -13,6 +13,27 @@ typedef struct {
     unsigned int tail;
 } SerialBuffer;
 
+/* Type of a function writing to a memory address. */
+typedef void mem_write_handler_t(zuint32, zuint8);
+
+/* Type of a function reading from a memory address. */
+typedef zuint8 mem_read_handler_t(zuint32);
+
+/* Type of a function writing to an IO port. */
+typedef void io_write_handler_t(zuint8, zuint8);
+
+/* Type of a function reading from an IO port. */
+typedef zuint8 io_read_handler_t(zuint8);
+
+/* Type of a function to handle a clock cycle for a peripheral. */
+typedef zuint8 io_clock_handler_t(void);
+
+void zemu_set_mem_write_handler(mem_write_handler_t * h);
+void zemu_set_mem_read_handler(mem_read_handler_t * h);
+
+void zemu_set_io_write_handler(io_write_handler_t * h);
+void zemu_set_io_read_handler(io_read_handler_t * h);
+void zemu_set_io_clock_handler(io_clock_handler_t * h);
 
 zuint8 zemu_memory_read(void * context, zuint16 address);
 void zemu_memory_write(void * context, zuint16 address, zuint8 value);

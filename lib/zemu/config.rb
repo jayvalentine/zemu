@@ -88,6 +88,8 @@ module Zemu
                     raise NotImplementedError, "Cannot construct an instance of the abstract class Zemu::Config::BusDevice."
                 end
 
+                @nmi = false
+
                 super
             end
 
@@ -99,47 +101,68 @@ module Zemu
 
             # Memory bus write handler.
             #
-            # Defines C code generated for handling memory
-            # writes for this device.
-            def when_mem_write
-                ""
+            # Handles write access via the memory bus to this device.
+            #
+            # @param addr The address being accessed.
+            # @param value The value being written.
+            def mem_write(addr, value)
             end
 
             # Memory bus read handler.
             #
-            # Defines C code generated for handling memory
-            # reads for this device.
-            def when_mem_read
-                ""
+            # Handles read access via the memory bus to this device.
+            #
+            # @param addr The address being accessed.
+            #
+            # Returns the value read, or nil if no value
+            # (e.g. if address falls outside range for this device).
+            def mem_read(addr)
+                nil
             end
 
             # IO bus write handler.
             #
-            # Defines C code generated for handling IO
-            # writes for this device.
-            def when_io_write
-                ""
+            # Handles write access via the IO bus to this device.
+            #
+            # @param port The IO port being accessed.
+            # @param value The value being written.
+            def io_write(port, value)
             end
 
             # IO bus read handler.
             #
-            # Defines C code generated for handling IO
-            # reads for this device.
-            def when_io_read
-                ""
+            # Handles read access via the IO bus to this device.
+            #
+            # @param port The IO port being accessed.
+            #
+            # Returns the value read from the port, or nil if no
+            # value (e.g. port does not correspond to this device).
+            def io_read(port)
+                nil
             end
 
             # Clock handler.
             #
-            # Defines C code which executes for every
-            # clock cycle.
-            def when_clock
-                ""
+            # Handles a clock cycle for this device.
+            # Deriving objects can use the nmi function
+            # to set the state of the non-maskable interrupt
+            # at each clock cycle.
+            def clock
             end
 
             # FFI functions provided by this device.
             def functions
                 []
+            end
+
+            # Sets state of the NMI for this device.
+            def nmi(state)
+                @nmi = state
+            end
+
+            # Gets state of NMI for this device.
+            def nmi?
+                @nmi
             end
 
             # Parameters for a bus device.
@@ -185,39 +208,40 @@ module Zemu
                 false
             end
 
-            # Defines generated C to declare this memory block.
-            def when_setup
-                init_array = []
-                contents.each_with_index do |b, i|
-                    init_array << ((i % 16 == 0) ? "\n    " : "") + ("0x%02x, " % b)
+            # Memory bus read handler.
+            #
+            # Handles read access via the memory bus to this device.
+            #
+            # @param addr The address being accessed.
+            #
+            # Returns the value read, or nil if no value
+            # (e.g. if address falls outside range for this device).
+            def mem_read(addr)
+                # Return value in memory's contents if the address
+                # falls within range.
+                if (addr >= address) && (addr < (address + size))
+                    offset = addr - address
+                    return @contents[offset]
                 end
 
-<<-eos
-/* Initialization memory block "#{name}" */
-#{if self.readonly? then "const" else "" end} zuint8 zemu_memory_block_#{name}[0x#{size.to_s(16)}] =
-{#{init_array.join("")}
-};
-eos
+                # Otherwise return nil - address does not correspond
+                # to this memory block.
+                nil
             end
 
-            # Defines generated C to handle reading this memory block.
-            def when_mem_read
-<<-eos
-if (address_32 >= 0x#{address.to_s(16)} && address_32 < 0x#{(address + size).to_s(16)})
-{
-    return zemu_memory_block_#{name}[address_32 - 0x#{address.to_s(16)}];
-}
-eos
-            end
-
-            # Defines generated C to handle writing to this memory block.
-            def when_mem_write
-<<-eos
-if (address_32 >= 0x#{address.to_s(16)} && address_32 < 0x#{(address + size).to_s(16)})
-{
-    zemu_memory_block_#{name}[address_32 - 0x#{address.to_s(16)}] = value;
-}
-eos
+            # Memory bus write handler.
+            #
+            # Handles write access via the memory bus to this device.
+            #
+            # @param addr The address being accessed.
+            # @param value The value being written.
+            def mem_write(addr, value)
+                # If address falls within range, set value in
+                # memory contents.
+                if (addr >= address) && (addr < (address + size))
+                    offset = addr - address
+                    @contents[offset] = value
+                end
             end
 
             # Valid parameters for this object.
@@ -268,12 +292,9 @@ eos
                 true
             end
 
-            # Defines generated C to handle writing to this
-            # memory block. Because this block is read-only,
-            # no code is generated to handle writes.
-            def when_mem_write
-                # Cannot write to read-only memory.
-                ""
+            # Memory write handler.
+            def mem_write(addr, port)
+                # Does nothing - cannot write to read-only memory.
             end
         end
 
@@ -308,93 +329,90 @@ eos
             #
             def initialize
                 super
+
+                @buffer_tx = []
+                @buffer_rx = []
             end
 
-            # Defines generated C to declare the serial device.
-            def when_setup
-                "SerialBuffer io_#{name}_buffer_master = { .head = 0, .tail = 0 };\n" +
-                "SerialBuffer io_#{name}_buffer_slave = { .head = 0, .tail = 0 };\n" +
-                "\n" +
-                "zusize zemu_io_#{name}_buffer_size(void)\n" +
-                "{\n" +
-                "    zusize start = io_#{name}_buffer_slave.head;\n" +
-                "    zusize end = io_#{name}_buffer_slave.tail\n;" +
-                "    if (end < start) end += ZEMU_IO_SERIAL_BUFFER_SIZE;\n" +
-                "    return end - start;\n" +
-                "}\n" +
-                "\n" +
-                "void zemu_io_#{name}_slave_puts(zuint8 val)\n" +
-                "{\n" +
-                "    io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.tail] = val;\n" +
-                "    io_#{name}_buffer_slave.tail++;\n" +
-                "    if (io_#{name}_buffer_slave.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                "        io_#{name}_buffer_slave.tail = 0;\n" +
-                "}\n" +
-                "\n" +
-                "zuint8 zemu_io_#{name}_slave_gets(void)\n" +
-                "{\n" +
-                "    zuint8 val = io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.head];\n" +
-                "    io_#{name}_buffer_master.head++;\n" +
-                "    if (io_#{name}_buffer_master.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                "        io_#{name}_buffer_master.head = 0;\n" +
-                "\n" +
-                "    return val;\n" +
-                "}\n" +
-                "\n" +
-                "void zemu_io_#{name}_master_puts(zuint8 val)\n" +
-                "{\n" +
-                "    io_#{name}_buffer_master.buffer[io_#{name}_buffer_master.tail] = val;\n" +
-                "    io_#{name}_buffer_master.tail++;\n" +
-                "    if (io_#{name}_buffer_master.tail >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                "        io_#{name}_buffer_master.tail = 0;\n" +
-                "}\n" +
-                "\n" +
-                "zuint8 zemu_io_#{name}_master_gets(void)\n" +
-                "{\n" +
-                "    zuint8 val = io_#{name}_buffer_slave.buffer[io_#{name}_buffer_slave.head];\n" +
-                "    io_#{name}_buffer_slave.head++;\n" +
-                "    if (io_#{name}_buffer_slave.head >= ZEMU_IO_SERIAL_BUFFER_SIZE)\n" +
-                "        io_#{name}_buffer_slave.head = 0;\n" +
-                "\n" +
-                "    return val;\n" +
-                "}\n"
+            # IO bus read handler.
+            #
+            # Handles read access via the IO bus to this device.
+            #
+            # @param port The IO port being accessed.
+            #
+            # Returns the value read, or nil if the port does not
+            # correspond to this device.
+            def io_read(port)
+                if port == in_port
+                    return @buffer_rx.shift()
+                elsif port == ready_port
+                    if @buffer_rx.empty?
+                        return 0
+                    else
+                        return 1
+                    end
+                end
+
+                nil
             end
 
-            # Defines generated C to handle reading from serial port's
-            # registers.
-            def when_io_read
-                "if (port == #{in_port})\n" +
-                "{\n" +
-                "    return zemu_io_#{name}_slave_gets();\n" +
-                "}\n" +
-                "else if (port == #{ready_port})\n" +
-                "{\n" +
-                "    if (io_#{name}_buffer_master.head == io_#{name}_buffer_master.tail)\n" +
-                "    {\n" +
-                "        return 0;\n" +
-                "    }\n" +
-                "    else\n" +
-                "    {\n" +
-                "        return 1;\n" +
-                "    }\n" +
-                "}\n"
+            # IO bus write handler.
+            #
+            # Handles write access via the IO bus to this device.
+            #
+            # @param port The IO port being accessed.
+            # @param value The value being written.
+            def io_write(port, value)
+                if port == out_port
+                    @buffer_tx << value
+                end
             end
 
-            # Defines generated C to handle writing to the serial port's registers.
-            def when_io_write
-                "if (port == #{out_port})\n" +
-                "{\n" +
-                "    zemu_io_#{name}_slave_puts(value);\n" +
-                "}\n"
+            # Gets number of bytes transmitted by the CPU,
+            # but not yet read from this device.
+            def transmitted_count
+                @buffer_tx.size
             end
 
-            # Defines FFI API which will be available to the instance wrapper if this IO device is used.
-            def functions
-                [
-                    {"name" => "zemu_io_#{name}_master_puts".to_sym, "args" => [:uint8], "return" => :void},
-                    {"name" => "zemu_io_#{name}_master_gets".to_sym, "args" => [], "return" => :uint8},
-                    {"name" => "zemu_io_#{name}_buffer_size".to_sym, "args" => [], "return" => :uint64}
-                ]
+            # Gets a byte transmitted by the CPU, or nil
+            # if transmit buffer is empty.
+            def get_byte
+                @buffer_tx.shift()
+            end
+
+            # Puts a byte in the receive buffer of this device.
+            def put_byte(b)
+                @buffer_rx << b
+            end
+
+            # Puts a string in the receive buffer of this device.
+            def puts(s)
+                s.each_byte { |b| put_byte(b) }
+            end
+
+            # Gets a string from the transmit buffer of this device.
+            # String length will be no more than n, but may be less
+            # if fewer characters exist in buffer.
+            #
+            # @param n Length of string to retrieve. If omitted the
+            # entire buffer will be returned.
+            def gets(n=nil)
+                s = ""
+
+                if n.nil?
+                    until (c = get_byte()).nil?
+                        s += c.chr
+                    end
+                else
+                    n.times do
+                        c = get_byte()
+                        break if c.nil?
+
+                        s += c.chr
+                    end
+                end
+
+                s
             end
 
             # Valid parameters for a SerialPort, along with those
@@ -409,6 +427,15 @@ eos
         # Represents a device with a sequence of sectors of a fixed size,
         # which can be accessed via IO instructions as an IDE drive.
         class BlockDrive < BusDevice
+            # Mode for reading drive.
+            DRIVE_MODE_READ = 0x01
+
+            # Mode for writing drive.
+            DRIVE_MODE_WRITE = 0x02
+
+            # Uninitialised drive mode.
+            DRIVE_MODE_UNINIT = 0x00
+
             # Constructor.
             #
             # Takes a block in which the parameters of the block drive
@@ -443,138 +470,108 @@ eos
                         raise RangeError, "Initialization file for Zemu::Config::BlockDrive '#{name}' is of wrong size."
                     end
                 end
+
+                @lba_0 = 0
+                @lba_1 = 0
+                @lba_2 = 0
+                @lba_3 = 0
+
+                @drive_mode = DRIVE_MODE_UNINIT
+                @drive_status = 0b01000000
+                @sector_offset = 0
+                @sector_data = []
             end
 
-            # Defines generated C to declare the block device.
-            def when_setup
-<<-eos
-#include <stdio.h>
+            # IO bus read handler.
+            #
+            # Handles read access via the IO bus to this device.
+            #
+            # @param port The IO port being accessed.
+            #
+            # Returns the value read, or nil if the port does not
+            # correspond to this device.
+            def io_read(port)
+                if port == base_port
+                    b = @sector_data.shift()
 
-zuint8 sector_data_#{name}[#{sector_size}];
-zuint32 sector_data_#{name}_offset;
-zuint32 loaded_sector_#{name} = Z_UINT32_MAXIMUM;
-zuint8 drive_mode_#{name};
-zuint8 drive_status_#{name} = 0b01000000;
+                    if @sector_data.empty?
+                        @drive_status = 0b01000000
+                    end
 
-zuint8 lba_#{name}_0;
-zuint8 lba_#{name}_1;
-zuint8 lba_#{name}_2;
-zuint8 lba_#{name}_3;
+                    return b
+                elsif port == (base_port + 7)
+                    return @drive_status
+                end
 
-void internal_#{name}_load_sector(zuint32 sector)
-{
-    if (loaded_sector_#{name} == sector) return;
-
-    FILE * fptr = fopen("#{@initialize_from}", "rb");
-    fseek(fptr, sector * #{sector_size}, SEEK_SET);
-    fread(sector_data_#{name}, #{sector_size}, 1, fptr);
-    fclose(fptr);
-
-    loaded_sector_#{name} = sector;
-}
-
-void internal_#{name}_write_current_sector()
-{
-    FILE * fptr = fopen("#{@initialize_from}", "r+b");
-    fseek(fptr, loaded_sector_#{name} * #{sector_size}, SEEK_SET);
-    fwrite(sector_data_#{name}, 1, #{sector_size}, fptr);
-    fclose(fptr);
-}
-
-zuint8 zemu_io_#{name}_readbyte(zuint32 sector, zuint32 offset)
-{
-    internal_#{name}_load_sector(sector);
-    return sector_data_#{name}[offset];
-}
-eos
+                nil
             end
 
-            # Defines generated C to handle reading the block drive's
-            # registers.
-            def when_io_read
-<<-eos
-if (port == #{base_port})
-{
-    zuint8 b = sector_data_#{name}[sector_data_#{name}_offset];
-    sector_data_#{name}_offset++;
-    if (sector_data_#{name}_offset >= #{sector_size})
-    {
-        drive_status_#{name} = 0b01000000;
-    }
-    return b;
-}
-else if (port == #{base_port+7})
-{
-    return drive_status_#{name};
-}
-eos
+            def get_sector()
+                sector = 0
+                sector |= @lba_0
+                sector |= @lba_1 << 8
+                sector |= @lba_2 << 16
+                sector |= @lba_3 << 24
+
+                sector
             end
 
-            # Defines generated C to handle writing to the block drive's
-            # registers.
-            def when_io_write
-<<-eos
-if (port == #{base_port})
-{
-    if (drive_mode_#{name} == 0x01)
-    {
-        sector_data_#{name}[sector_data_#{name}_offset] = value;
-        sector_data_#{name}_offset++;
-        if (sector_data_#{name}_offset >= #{sector_size})
-        {
-            internal_#{name}_write_current_sector();
-            drive_status_#{name} = 0b01000000;
-        }
-    }
-}
-else if (port == #{base_port+3})
-{
-    lba_#{name}_0 = value;
-}
-else if (port == #{base_port+4})
-{
-    lba_#{name}_1 = value;
-}
-else if (port == #{base_port+5})
-{
-    lba_#{name}_2 = value;
-}
-else if (port == #{base_port+6})
-{
-    lba_#{name}_3 = value & 0b00011111;
-}
-else if (port == #{base_port+7})
-{
-    if (value == 0x20)
-    {
-        zuint32 sector = 0;
-        sector |= (zuint32)lba_#{name}_3 << 24;
-        sector |= (zuint32)lba_#{name}_2 << 16;
-        sector |= (zuint32)lba_#{name}_1 << 8;
-        sector |= (zuint32)lba_#{name}_0;
+            def write_current_sector()
+                file_offset = get_sector() * sector_size
+                File.open(@initialize_from, "r+b") do |f|
+                    f.seek(file_offset)
+                    f.write(@sector_data.pack("C" * sector_size))
+                end
+            end
 
-        internal_#{name}_load_sector(sector);
-        sector_data_#{name}_offset = 0;
+            def load_sector()
+                file_offset = get_sector() * sector_size
+                File.open(@initialize_from, "rb") do |f|
+                    f.seek(file_offset)
+                    s = f.read(sector_size)
+                    @sector_data = s.unpack("C" * sector_size)
+                end
+            end
 
-        drive_mode_#{name} = 0x00;
-        drive_status_#{name} = 0b00001000;
-    }
-    else if (value == 0x30)
-    {
-        zuint32 sector = 0;
-        sector |= (zuint32)lba_#{name}_3 << 24;
-        sector |= (zuint32)lba_#{name}_2 << 16;
-        sector |= (zuint32)lba_#{name}_1 << 8;
-        sector |= (zuint32)lba_#{name}_0;
+            # IO bus write handler.
+            #
+            # Handles write access via the IO bus to this device.
+            #
+            # @param port The IO port being accessed.
+            # @param value The value being written.
+            def io_write(port, value)
+                if port == base_port
+                    if @drive_mode == DRIVE_MODE_WRITE
+                        @sector_data << value
+                        if @sector_data.size >= sector_size
+                            write_current_sector()
+                            @drive_status = 0b01000000
+                        end
+                    end
+                elsif port == (base_port + 3)
+                    @lba_0 = (value & 0xff)
+                elsif port == (base_port + 4)
+                    @lba_1 = (value & 0xff)
+                elsif port == (base_port + 5)
+                    @lba_2 = (value & 0xff)
+                elsif port == (base_port + 6)
+                    @lba_3 = (value & 0x1f)
+                elsif port == (base_port + 7)
+                    # Read command.
+                    if value == 0x20
+                        load_sector()
 
-        internal_#{name}_load_sector(sector);
-        sector_data_#{name}_offset = 0;
+                        @drive_mode = DRIVE_MODE_READ
+                        @drive_status = 0b00001000
 
-        drive_mode_#{name} = 0x01;
-        drive_status_#{name} = 0b00001000;
-    }
-}
-eos
+                    # Write command.
+                    elsif value == 0x30
+                        @sector_data = []
+
+                        @drive_mode = DRIVE_MODE_WRITE
+                        @drive_status = 0b00001000
+                    end
+                end
             end
 
             # Array of sectors of this drive.
@@ -607,10 +604,24 @@ eos
                 @initialize_from = file
             end
 
+            # Read a byte at the given offset in a sector.
+            #
+            # @param sector The sector to read from.
+            # @param offset Offset in that sector to read.
+            #
+            # Returns the byte read from the file.
+            def read_byte(sector, offset)
+                file_offset = (sector * sector_size) + offset
+                File.open(@initialize_from, "rb") do |f|
+                    f.seek(file_offset)
+                    s = f.read(1)
+                    return s.unpack("C")[0]
+                end
+            end
+
             # Defines FFI API which will be available to the instance wrapper if this IO device is used.
             def functions
                 [
-                    {"name" => "zemu_io_#{name}_readbyte", "args" => [:uint32, :uint32], "return" => :uint8},
                 ]
             end
 
@@ -627,26 +638,42 @@ eos
         # by the CPU through an IO port. The timer generates an NMI once this
         # period has expired. The timer can be reset via a control port.
         class Timer < BusDevice
-            # Defines generated C that sets up the timer.
-            def when_setup
-                "zuint8 io_#{name}_count;\n" +
-                "zuint8 io_#{name}_running = 0;\n"
+            RUNNING = 0x01
+            STOPPED = 0x00
+
+            def initialize
+                super
+
+                @count = 0
+                @running = false
+            end
+            
+            # IO bus write handler.
+            #
+            # Handles write access via the IO bus to this device.
+            #
+            # @param port The IO port being accessed.
+            # @param value The value being written.
+            def io_write(port, value)
+                if port == count_port
+                    @count = value
+                elsif port == control_port
+                    @running = if value == 0 then STOPPED else RUNNING end
+                end
             end
 
-            # Defines generated C that handles writing to the timer's
-            # registers.
-            def when_io_write
-                "if (port == #{count_port}) io_#{name}_count = value;\n" +
-                "else if (port == #{control_port}) io_#{name}_running = value;\n"
-            end
-
-            # Defines generated C that handles a clock tick for the timer.
-            def when_clock
-                "if (io_#{name}_running)\n" +
-                "{\n" +
-                "    if (io_#{name}_count > 0) io_#{name}_count--;\n" +
-                "    else zemu_io_nmi(instance);\n" +
-                "}\n"
+            # Clock handler.
+            #
+            # Handles a clock cycle for this device.
+            # Sets NMI active if the count reaches 0.
+            def clock
+                if @running == RUNNING
+                    if @count > 0
+                        @count -= 1
+                    else
+                        nmi(true)
+                    end
+                end
             end
 
             # Valid parameters for a Timer, along with those defined in
