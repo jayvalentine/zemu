@@ -506,6 +506,7 @@ module Zemu
                 nil
             end
 
+            # Get a sector number from the four LBA registers.
             def get_sector()
                 sector = 0
                 sector |= @lba_0
@@ -516,6 +517,8 @@ module Zemu
                 sector
             end
 
+            # Write sector data to the sector currently pointed
+            # to by the LBA registers.
             def write_current_sector()
                 file_offset = get_sector() * sector_size
                 File.open(@initialize_from, "r+b") do |f|
@@ -524,6 +527,7 @@ module Zemu
                 end
             end
 
+            # Load sector data pointed to by LBA registers.
             def load_sector()
                 file_offset = get_sector() * sector_size
                 File.open(@initialize_from, "rb") do |f|
@@ -638,7 +642,10 @@ module Zemu
         # by the CPU through an IO port. The timer generates an NMI once this
         # period has expired. The timer can be reset via a control port.
         class Timer < BusDevice
+            # Timer is running - count decrements once per clock cycle.
             RUNNING = 0x01
+
+            # Timer is stopped - count does not change on clock cycle.
             STOPPED = 0x00
 
             def initialize

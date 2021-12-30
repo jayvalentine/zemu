@@ -258,7 +258,7 @@ namespace :release do
         # Bump by 1.
         major += 1
 
-        version.gsub!(/MAJOR = \d+/, "MAJOR = #{refresh}")
+        version.gsub!(/MAJOR = \d+/, "MAJOR = #{major}")
 
         # Reset minor and refresh numbers to 0.
         version.gsub!(/MINOR = \d+/, "MINOR = 0")

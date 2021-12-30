@@ -13,13 +13,15 @@ All Zemu Ruby and C source code (except where listed above) is copyright (c) Jay
 
 Released under the terms of the GNU General Public License v3.
 
-## New in v0.6.0
+## New in v1.0.0
 
-### Bus Devices
+### Implementing device logic in Ruby
 
-Memory and IO devices are no longer separate,
-allowing for devices that are active on both the memory
-and IO buses (e.g. banked memory controlled by IO port).
+Device logic is now implemented in Ruby, rather than C.
+The Ruby implementations are called via FFI callbacks at runtime.
+
+This allows the definition of a system configuration, including
+new devices, without having to write any C.
 
 ## Usage
 
@@ -35,7 +37,7 @@ require 'zemu'
 conf = Zemu::Config.new do
     name "zemu_emulator"
 
-    add_memory Zemu::Config::ROM.new do
+    add_device Zemu::Config::ROM.new do
         name "rom"
         address 0x0000
         size 0x4000
@@ -43,7 +45,7 @@ conf = Zemu::Config.new do
         contents from_binary("app.bin")
     end
 
-    add_memory Zemu::Config::RAM.new do
+    add_device Zemu::Config::RAM.new do
         name "ram"
         address 0x8000
         size 0x1000
@@ -72,6 +74,95 @@ instance.quit
 
 An interactive mode is also provided, which gives a command-line interface to the emulated
 machine.
+
+### Defining new devices
+
+New devices can be defined by inheriting from the `Zemu::Config::BusDevice` class.
+The device can redefine the `mem_read`, `mem_write`, `io_read`, `io_write`, and `clock` functions
+as appropriate to define the run-time behaviour.
+
+Additionally, methods on the device can provide access to its internal state.
+
+```ruby
+require 'zemu'
+
+# Register mapped to an IO port.
+class Register < Zemu::Config::BusDevice
+    def initialize
+        super
+
+        @reg_state = 0
+    end
+
+    def params
+        super + %w(io_port)
+
+    def io_write(port, value)
+        # Port decode logic is local to each
+        # device. This allows multiple
+        # devices to listen on the same port.
+        if port == io_port
+            @reg_state = value
+        end
+    end
+
+    def io_read(port)
+        if port == io_port
+            return @reg_state
+        end
+
+        # Read operations return nil
+        # if the port is not applicable
+        # - e.g. does not correspond to
+        # this device.
+        nil
+    end
+
+    def get_reg_state
+        @reg_state
+    end
+end
+```
+
+The new device can be initialized as part of a configuration.
+Methods of the device can be used at run-time via the `Zemu::Instance#device` method.
+
+```ruby
+conf = Zemu::Config.new do
+    name "zemu_emulator"
+
+    add_device Zemu::Config::ROM.new do
+        name "rom"
+        address 0x0000
+        size 0x4000
+
+        contents from_binary("app.bin")
+    end
+
+    add_device Zemu::Config::RAM.new do
+        name "ram"
+        address 0x8000
+        size 0x1000
+    end
+
+    add_device Register.new do
+        name "reg"
+        io_port 0x12
+    end
+end
+
+# Start a new instance with this configuration.
+instance = Zemu.start(conf)
+
+# Continue for 100 cycles.
+instance.continue(100)
+
+# Get value of register.
+reg_value = instance.device('reg').get_reg_state
+
+# Close the instance.
+instance.quit
+```
 
 ## Documentation
 
