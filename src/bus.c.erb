@@ -34,14 +34,12 @@ void zemu_set_io_clock_handler(io_clock_handler_t * h)
 
 zuint8 zemu_memory_read(void * context, zuint16 address)
 {
-    zuint32 address_32 = address;
-    return mem_read_handler(address_32);
+    return zemu_memory_peek(address);
 }
 
 void zemu_memory_write(void * context, zuint16 address, zuint8 value)
 {
-    zuint32 address_32 = address;
-    mem_write_handler(address_32, value);
+    zemu_memory_poke(address, value);
 }
 
 zuint8 zemu_memory_peek(zuint16 address)
