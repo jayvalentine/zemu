@@ -26,7 +26,7 @@ typedef void io_write_handler_t(zuint8, zuint8);
 typedef zuint8 io_read_handler_t(zuint8);
 
 /* Type of a function to handle a clock cycle for a peripheral. */
-typedef zuint8 io_clock_handler_t(void);
+typedef zuint8 io_clock_handler_t(zusize);
 
 void zemu_set_mem_write_handler(mem_write_handler_t * h);
 void zemu_set_mem_read_handler(mem_read_handler_t * h);
@@ -48,6 +48,6 @@ zusize zemu_io_serial_buffer_size(void);
 zuint8 zemu_io_in(void * context, zuint16 port);
 void zemu_io_out(void * context, zuint16 port, zuint8 value);
 void zemu_io_nmi(Z80 * instance);
-void zemu_io_clock(Z80 * instance);
+void zemu_io_clock(Z80 * instance, zusize cycles);
 
 #endif

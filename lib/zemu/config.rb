@@ -89,6 +89,7 @@ module Zemu
                 end
 
                 @nmi = false
+                @interrupt = false
 
                 super
             end
@@ -147,7 +148,7 @@ module Zemu
             # Deriving objects can use the nmi function
             # to set the state of the non-maskable interrupt
             # at each clock cycle.
-            def clock
+            def clock(cycles)
             end
 
             # FFI functions provided by this device.
@@ -163,6 +164,16 @@ module Zemu
             # Gets state of NMI for this device.
             def nmi?
                 @nmi
+            end
+
+            # Sets state of INT for this device.
+            def interrupt(state)
+                @interrupt = state
+            end
+
+            # Gets state of INT for this device.
+            def interrupt?
+                @interrupt
             end
 
             # Parameters for a bus device.
@@ -673,10 +684,10 @@ module Zemu
             #
             # Handles a clock cycle for this device.
             # Sets NMI active if the count reaches 0.
-            def clock
+            def clock(cycles)
                 if @running == RUNNING
                     if @count > 0
-                        @count -= 1
+                        @count -= cycles
                     else
                         nmi(true)
                     end

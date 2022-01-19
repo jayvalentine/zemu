@@ -60,9 +60,11 @@ module Zemu
             UNDEFINED = -1
         end
 
-        
+        attr_reader :trace
 
         def initialize(configuration)
+            @trace = []
+
             @devices = configuration.devices
 
             # Methods defined by bus devices that we make
@@ -93,6 +95,7 @@ module Zemu
                     v = d.mem_read(addr)
                     unless v.nil?
                         r = v
+                        break
                     end
                 end
 
@@ -113,6 +116,7 @@ module Zemu
                     v = d.io_read(port)
                     unless v.nil?
                         r = v
+                        break
                     end
                 end
 
@@ -120,15 +124,19 @@ module Zemu
             end
 
             # IO read handler.
-            @io_clock = Proc.new do
+            @io_clock = Proc.new do |cycles|
                 @devices.each do |d|
-                    d.clock()
+                    d.clock(cycles)
                 end
 
                 bus_state = 0
 
                 if @devices.any? { |d| d.nmi? }
                     bus_state |= 1
+                end
+
+                if @devices.any? { |d| d.interrupt? }
+                    bus_state |= 2
                 end
 
                 bus_state
@@ -221,7 +229,7 @@ module Zemu
         # emulated machine.
         def serial_puts(string)
             string.each_char do |c|
-                @wrapper.zemu_io_serial_master_puts(c.ord)
+                device('serial').put_byte(c.ord)
             end
         end
 
@@ -237,14 +245,14 @@ module Zemu
         def serial_gets(count=nil)
             return_string = ""
 
-            actual_count = @wrapper.zemu_io_serial_buffer_size()
+            actual_count = device('serial').transmitted_count()
 
             if count.nil? || actual_count < count
                 count = actual_count
             end
 
             count.to_i.times do
-                return_string += @wrapper.zemu_io_serial_master_gets().chr
+                return_string += device('serial').get_byte().chr
             end
 
             return return_string
@@ -343,7 +351,7 @@ module Zemu
 
             wrapper.callback :io_write_handler, [:uint8, :uint8], :void
             wrapper.callback :io_read_handler, [:uint8], :uint8
-            wrapper.callback :io_clock_handler, [:void], :uint8
+            wrapper.callback :io_clock_handler, [:uint64], :uint8
 
             wrapper.attach_function :zemu_set_mem_write_handler, [:mem_write_handler], :void
             wrapper.attach_function :zemu_set_mem_read_handler, [:mem_read_handler], :void
