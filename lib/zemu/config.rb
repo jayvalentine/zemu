@@ -244,6 +244,7 @@ eos
                 m.address = address
                 m.size = size
                 m.access_read = "memory_#{name}"
+                m.access_write = "memory_#{name}"
 
                 m
             end

@@ -63,7 +63,12 @@ zuint8 zemu_memory_peek(zuint16 address)
 void zemu_memory_poke(zuint16 address, zuint8 value)
 {
     zuint32 address_32 = address;
-    mem_write_handler(address_32, value);
+    
+    <% devices.each do |d| %>
+    <% next if d.memory.nil? %>
+    if ((address_32 >= <%= d.memory.address %>) && (address_32 < <%= d.memory.address + d.memory.size%>))
+        <%= d.memory.access_write %>[address_32 - <%= d.memory.address %>] = value;
+    <% end %>
 }
 
 void zemu_io_nmi(Z80 * instance)
