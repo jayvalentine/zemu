@@ -1,3 +1,5 @@
+require 'ostruct'
+
 module Zemu
     # Abstract configuration object.
     # All configuration objects should inherit from this.
@@ -92,6 +94,10 @@ module Zemu
                 @interrupt = false
 
                 super
+            end
+
+            def memory
+                nil
             end
 
             # Setup to be performed on initialising the emulator
@@ -217,6 +223,29 @@ module Zemu
             # Is this memory read-only?
             def readonly?
                 false
+            end
+
+            def memory
+                contents_initializer = ""
+                @contents.each_slice(32) do |c|
+                    contents_initializer += c.map { |b| b.to_s }.join(", ")
+                    contents_initializer += ",\n"
+                end
+
+                m = OpenStruct.new
+
+                m.setup = <<eos
+zuint8 memory_#{name}[#{size}] =
+{
+    #{contents_initializer}
+};
+eos
+
+                m.address = address
+                m.size = size
+                m.access_read = "memory_#{name}"
+
+                m
             end
 
             # Memory bus read handler.

@@ -7,6 +7,11 @@ io_write_handler_t * io_write_handler;
 io_read_handler_t * io_read_handler;
 io_clock_handler_t * io_clock_handler;
 
+<% devices.each do |d| %>
+<% next if d.memory.nil? %>
+<%= d.memory.setup %>
+<% end %>
+
 void zemu_set_mem_write_handler(mem_write_handler_t * h)
 {
     mem_write_handler = h;
@@ -45,7 +50,14 @@ void zemu_memory_write(void * context, zuint16 address, zuint8 value)
 zuint8 zemu_memory_peek(zuint16 address)
 {
     zuint32 address_32 = address;
-    return mem_read_handler(address_32);
+
+    <% devices.each do |d| %>
+    <% next if d.memory.nil? %>
+    if ((address_32 >= <%= d.memory.address %>) && (address_32 < <%= d.memory.address + d.memory.size%>))
+        return <%= d.memory.access_read %>[address_32 - <%= d.memory.address %>];
+    <% end %>
+
+    return 0;
 }
 
 void zemu_memory_poke(zuint16 address, zuint8 value)
