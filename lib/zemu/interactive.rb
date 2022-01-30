@@ -183,9 +183,6 @@ module Zemu
             serial_count = @instance.serial_delay.to_f
 
             while ((cycles == -1) || (cycles_left > 0))
-                # Get time before execution.
-                start = Time.now
-
                 old_pc = r16("PC")
 
                 if (serial_count >= @instance.serial_delay)
@@ -197,26 +194,10 @@ module Zemu
                 cycles_left -= cycles_done
                 actual_cycles += cycles_done
 
-                @trace << r16("PC")
-                @trace = @trace[1..] if @trace.size > 200
-
-                # Get time after execution.
-                ending = Time.now
-
                 # Get elapsed time and calculate padding time to match clock speed.
                 if @instance.clock_speed > 0
-                    elapsed = ending - start
-
                     execution_time = cycles_done * (1.0/@instance.clock_speed)
                     serial_count += execution_time
-                    
-                    padding = execution_time - elapsed
-                    sleep(padding) unless padding < 0
-                end
-
-                if (@instance.memory(0x200) != 0xf3)
-                    log "Buffer overflow at #{r16("PC")}"
-                    break
                 end
 
                 # Have we hit a breakpoint or HALT instruction?
