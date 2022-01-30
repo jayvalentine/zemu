@@ -258,15 +258,6 @@ eos
             # Returns the value read, or nil if no value
             # (e.g. if address falls outside range for this device).
             def mem_read(addr)
-                # Return value in memory's contents if the address
-                # falls within range.
-                if (addr >= address) && (addr < (address + size))
-                    offset = addr - address
-                    return @contents[offset]
-                end
-
-                # Otherwise return nil - address does not correspond
-                # to this memory block.
                 nil
             end
 
@@ -277,12 +268,6 @@ eos
             # @param addr The address being accessed.
             # @param value The value being written.
             def mem_write(addr, value)
-                # If address falls within range, set value in
-                # memory contents.
-                if (addr >= address) && (addr < (address + size))
-                    offset = addr - address
-                    @contents[offset] = value
-                end
             end
 
             # Valid parameters for this object.

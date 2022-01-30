@@ -57,7 +57,7 @@ zuint8 zemu_memory_peek(zuint16 address)
         return <%= d.memory.access_read %>[address_32 - <%= d.memory.address %>];
     <% end %>
 
-    return 0;
+    return mem_read_handler(address_32);
 }
 
 void zemu_memory_poke(zuint16 address, zuint8 value)
@@ -69,6 +69,8 @@ void zemu_memory_poke(zuint16 address, zuint8 value)
     if ((address_32 >= <%= d.memory.address %>) && (address_32 < <%= d.memory.address + d.memory.size%>))
         <%= d.memory.access_write %>[address_32 - <%= d.memory.address %>] = value;
     <% end %>
+
+    mem_write_handler(address_32, value);
 }
 
 void zemu_io_nmi(Z80 * instance)
