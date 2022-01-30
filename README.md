@@ -30,15 +30,18 @@ Currently, the only supported compiler is clang. If this is not already
 installed on your system, you must follow system-appropriate installation instructions
 to install it before you can use Zemu.
 
-## New in v1.0.0
+## New in v1.1.0
 
-### Implementing device logic in Ruby
+### Memory Performance Improvement
 
-Device logic is now implemented in Ruby, rather than C.
-The Ruby implementations are called via FFI callbacks at runtime.
+Memory blocks are now implemented in C, rather than
+Ruby, for improved performance.
+### Tracepoints
 
-This allows the definition of a system configuration, including
-new devices, without having to write any C.
+The Instance#trace function allows for a "tracepoint"
+to be set at a given address. When the emulator executes
+the instruction at this address, the corresponding
+tracepoint block will be executed.
 
 ## Usage
 
