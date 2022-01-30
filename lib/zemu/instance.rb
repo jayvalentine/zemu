@@ -2,6 +2,17 @@ require 'ffi'
 require 'ostruct'
 
 module Zemu
+    # Exception raised when an error occurs in a Zemu::Instance.
+    class InstanceError < StandardError
+        # Constructor.
+        #
+        # @param msg    The exception message
+        #
+        def initialize(msg="An error occurred with the Zemu::Instance")
+            super
+        end
+    end
+
     # Represents an instance of a Zemu emulator.
     #
     # Provides methods by which the state of the emulator can be observed
@@ -60,11 +71,7 @@ module Zemu
             UNDEFINED = -1
         end
 
-        attr_reader :trace
-
         def initialize(configuration)
-            @trace = []
-
             @devices = configuration.devices
 
             # Methods defined by bus devices that we make
@@ -155,6 +162,7 @@ module Zemu
             @state = RunState::UNDEFINED
 
             @breakpoints = {}
+            @tracepoints = {}
         end
 
         # Returns the device with the given name, or nil
@@ -291,6 +299,12 @@ module Zemu
 
                 pc = @wrapper.zemu_debug_pc(@instance)
 
+                # If there's a tracepoint at this address,
+                # execute the associated proc.
+                unless @tracepoints[pc].nil?
+                    @tracepoints[pc].call(self)
+                end
+
                 # If the PC is now pointing to one of our breakpoints,
                 # we're in the BREAK state.
                 if @breakpoints[pc]
@@ -310,6 +324,26 @@ module Zemu
         #   * :program => Break when the program counter hits the address given. 
         def break(address, type)
             @breakpoints[address] = true
+        end
+
+        # Set a tracepoint to execute the given block at an address.
+        #
+        # @param address The address of the tracepoint
+        # @param block   The block to execute at the tracepoint.
+        #                The block takes the instance as a parameter.
+        #
+        # @example
+        #     instance.trace(0x1234) do |i|
+        #         puts "HL value: 04x" % i.registers["HL"]
+        #     end
+        #
+        def trace(address, &block)
+            if block.arity != 1
+                raise InstanceError,
+                      "Wrong arity for tracepoint - expected 1, got #{block.arity}"
+            end
+            
+            @tracepoints[address] = block
         end
 
         # Remove a breakpoint of the given type at the given address.

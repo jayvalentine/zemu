@@ -96,6 +96,8 @@ module Zemu
                 super
             end
 
+            # Parameters used for generating C code to
+            # implement this bus device.
             def memory
                 nil
             end
@@ -225,6 +227,8 @@ module Zemu
                 false
             end
 
+            # Parameters used for generating C code to
+            # implement this memory block.
             def memory
                 contents_initializer = ""
                 @contents.each_slice(32) do |c|
