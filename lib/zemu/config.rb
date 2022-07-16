@@ -284,11 +284,7 @@ eos
             # returns them as an array.
             def from_binary(file)
                 return File.open(file, "rb") do |f|
-                    bin = []
-
-                    f.each_byte { |b| bin << b }
-
-                    bin
+                    f.read.unpack("C*")
                 end
             end
         end
