@@ -11,7 +11,7 @@ module Zemu
                 f.each_line do |l|
                     s = Symbol.parse(l)
 
-                    symbols << s
+                    symbols << s unless s.nil?
                 end
             end
 
@@ -21,6 +21,8 @@ module Zemu
         # Contains a set of symbols.
         # Allows for various lookup operations.
         class Symbols
+            attr_reader :syms
+            
             # Constructor.
             def initialize(syms)
                 @syms = []
@@ -29,6 +31,10 @@ module Zemu
                 end
             end
 
+            def size
+                @syms.size
+            end
+            
             # Access all symbols with a given address.
             def [](address)
                 at_address = []
@@ -50,9 +56,10 @@ module Zemu
                 return nil
             end
 
-            # Get symbols as a hash.
-            def hash
-                return @syms
+            def merge!(other)
+                other.syms.each do |s|
+                    @syms << s
+                end
             end
         end
         
@@ -72,13 +79,13 @@ module Zemu
                 address = nil
 
                 if /0x[0-9a-fA-F]+/ =~ tokens[2]
-                    address = tokens[2][2..-1].to_i(16)
+                     address = tokens[2][2..-1].to_i(16)
                 elsif /\$[0-9a-fA-F]+/ =~ tokens[2]
                     address = tokens[2][1..-1].to_i(16)
                 elsif /\d+/ =~ tokens[2]
                     address = tokens[2].to_i
                 end
-
+ 
                 if address.nil?
                     raise ArgumentError, "Invalid symbol address: '#{tokens[2]}'"
                 end
