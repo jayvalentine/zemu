@@ -163,6 +163,8 @@ module Zemu
 
             @breakpoints = {}
             @tracepoints = {}
+
+            @addrs = []
         end
 
         # Returns the device with the given name, or nil
@@ -276,6 +278,8 @@ module Zemu
             return @wrapper.zemu_io_block_drive_readbyte(sector, offset)
         end
 
+        attr_reader :addrs
+
         # Continue running this instance until either:
         # * A HALT instruction is executed
         # * A breakpoint is hit
@@ -298,6 +302,7 @@ module Zemu
                 cycles_executed += @wrapper.zemu_debug_step(@instance)
 
                 pc = @wrapper.zemu_debug_pc(@instance)
+                @addrs << pc
 
                 # If there's a tracepoint at this address,
                 # execute the associated proc.

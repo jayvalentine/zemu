@@ -15,7 +15,7 @@ module Zemu
 
             @instance = instance
 
-            @symbol_table = {}
+            @symbol_table = Debug::Symbols.new([])
 
             @master, @slave = PTY.open
             log "Opened PTY at #{@slave.path}"
@@ -200,6 +200,9 @@ module Zemu
                     serial_count += execution_time
                 end
 
+                @trace << r16("PC")
+                @trace = @trace.last(200)
+
                 # Have we hit a breakpoint or HALT instruction?
                 if @instance.break?
                     log "Hit breakpoint at #{r16("PC")}."
@@ -210,7 +213,7 @@ module Zemu
                 end
             end
 
-            log "Executed for #{actual_cycles} cycles."
+            log "Executed for #{actual_cycles} cycles. At #{r16("PC")}."
         end
 
         # Add a breakpoint at the address given by the string.
@@ -257,9 +260,9 @@ module Zemu
                 return
             end
 
-            syms = {}
+            syms = Debug::Symbols.new([])
             begin
-                syms.merge! Debug.load_map(path.to_s).hash
+                syms.merge! Debug.load_map(path.to_s)
             rescue ArgumentError => e
                 log "Error loading map file: #{e.message}"
                 syms.clear
