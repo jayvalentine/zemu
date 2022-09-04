@@ -34,7 +34,7 @@ module Zemu
             def size
                 @syms.size
             end
-            
+
             # Access all symbols with a given address.
             def [](address)
                 at_address = []
@@ -66,28 +66,33 @@ module Zemu
         # Represents a symbol definition, of the form `label = address`.
         class Symbol
             # Parse a symbol definition, returning a Symbol instance.
-            def self.parse(s)
-                # Split on whitespace.
-                tokens = s.to_s.split(' ')
-
-                if tokens.size < 3
-                    raise ArgumentError, "Invalid symbol definition: '#{s}'"
-                end
-
-                label = tokens[0]
-
+            def self.parse(s, &block)
+                label = nil
                 address = nil
 
-                if /0x[0-9a-fA-F]+/ =~ tokens[2]
-                     address = tokens[2][2..-1].to_i(16)
-                elsif /\$[0-9a-fA-F]+/ =~ tokens[2]
-                    address = tokens[2][1..-1].to_i(16)
-                elsif /\d+/ =~ tokens[2]
-                    address = tokens[2].to_i
+                label, address_string = if block_given?
+                    block.call(s)
+                else
+                    # Split on whitespace.
+                    tokens = s.to_s.split(' ')
+
+                    if tokens.size < 3
+                        raise ArgumentError, "Invalid symbol definition: '#{s}'"
+                    end
+
+                    [tokens[0], tokens[2]]
+                end
+
+                if /0x[0-9a-fA-F]+/ =~ address_string
+                     address = address_string.to_i(16)
+                elsif /\$[0-9a-fA-F]+/ =~ address_string
+                    address = address_string[1..-1].to_i(16)
+                elsif /\d+/ =~ address_string
+                    address = address_string.to_i
                 end
  
                 if address.nil?
-                    raise ArgumentError, "Invalid symbol address: '#{tokens[2]}'"
+                    raise ArgumentError, "Invalid symbol address: '#{address_string}'"
                 end
 
                 return self.new(label, address)

@@ -46,4 +46,55 @@ class SymbolTest < Minitest::Test
         sym = Zemu::Debug::Symbol.parse("sym = 1000")
         assert_equal 1000, sym.address
     end
+
+    # Ensures we can process a symbol using a custom format
+    def test_custom_0x
+        sym = Zemu::Debug::Symbol.parse("[0x1234] mysym") do |s|
+            s = s.split
+            label = s[1]
+            address = nil
+            if /\[(.+)\]/ =~ s[0]
+                address = $1
+            end
+
+            [label, address]
+        end
+
+        assert_equal "mysym", sym.label
+        assert_equal 0x1234, sym.address
+    end
+
+    # Ensures we can process a symbol using a custom format
+    def test_custom_dollar
+        sym = Zemu::Debug::Symbol.parse("[$1234] mysym") do |s|
+            s = s.split
+            label = s[1]
+            address = nil
+            if /\[(.+)\]/ =~ s[0]
+                address = $1
+            end
+
+            [label, address]
+        end
+
+        assert_equal "mysym", sym.label
+        assert_equal 0x1234, sym.address
+    end
+
+    # Ensures we can process a symbol using a custom format
+    def test_custom_decimal
+        sym = Zemu::Debug::Symbol.parse("[4567] mysym") do |s|
+            s = s.split
+            label = s[1]
+            address = nil
+            if /\[(.+)\]/ =~ s[0]
+                address = $1
+            end
+
+            [label, address]
+        end
+
+        assert_equal "mysym", sym.label
+        assert_equal 4567, sym.address
+    end
 end
