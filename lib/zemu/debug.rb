@@ -4,12 +4,12 @@ module Zemu
     module Debug
         # Loads a map file at the given path, and returns a hash of address => Symbol
         # for the symbols defined within.
-        def self.load_map(path)
+        def self.load_map(path, &block)
             symbols = []
 
             File.open(path, "r") do |f|
                 f.each_line do |l|
-                    s = Symbol.parse(l)
+                    s = Symbol.parse(l, &block)
 
                     symbols << s unless s.nil?
                 end
@@ -65,13 +65,24 @@ module Zemu
         
         # Represents a symbol definition, of the form `label = address`.
         class Symbol
-            # Parse a symbol definition, returning a Symbol instance.
+            # Parse a symbol definition, returning a Symbol instance, or nil if the string
+            # does not represent a symbol.
+            #
+            # For parsing of custom symbol definitions, a block can be given.
+            # This block takes the string parameter 's' as its only argument,
+            # and returns a [label, address] pair, or nil if 's' does not represent
+            # a symbol.
             def self.parse(s, &block)
                 label = nil
                 address = nil
 
                 label, address_string = if block_given?
-                    block.call(s)
+                    v = block.call(s)
+                    if v.nil?
+                        return nil
+                    else
+                        v
+                    end
                 else
                     # Split on whitespace.
                     tokens = s.to_s.split(' ')
