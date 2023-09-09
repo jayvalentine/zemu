@@ -11,7 +11,8 @@ module Zemu
         #                      to the emulator window.
         def initialize(instance, options = {})
             @print_serial = options[:print_serial]
-            @trace = []
+            @trace_range = nil
+            @trace_stack = []
 
             @instance = instance
 
@@ -72,8 +73,17 @@ module Zemu
                     load_map(cmd[1])
 
                 elsif cmd[0] == "trace"
-                    trace()
+                    start = cmd[1].to_i(16)
+                    stop = cmd[2].to_i(16)
 
+                    @trace_range = (start...stop)
+
+                elsif cmd[0] == "trace_exec"
+                    start = cmd[1].to_i(16)
+                    stop = cmd[2].to_i(16)
+
+                    @trace_exec_range = (start...stop)
+                    
                 elsif cmd[0] == "help"
                     log "Available commands:"
                     log "    continue [<n>]     - Continue execution for <n> cycles"
@@ -92,14 +102,6 @@ module Zemu
             end
 
             close
-        end
-
-        # Print trace for the emulator instance
-        # (last 200 addresses visited).
-        def trace
-            @trace.each do |t|
-                puts "%04x" % t
-            end
         end
 
         # Outputs a table giving the current values of the instance's registers.
@@ -167,6 +169,9 @@ module Zemu
             return (hi << 8) | lo
         end
 
+        # Opcodes for return instructions.
+        RETURN = [0xc9, 0xd8, 0xd0, 0xc8, 0xc0, 0xe8, 0xe0, 0xf8, 0xf0]
+
         # Continue for *up to* the given number of cycles.
         # Fewer cycles may be executed, depending on the behaviour of the processor.
         def continue(cycles=-1)
@@ -184,6 +189,7 @@ module Zemu
 
             while ((cycles == -1) || (cycles_left > 0))
                 old_pc = r16("PC")
+                executed_return = RETURN.include?(@instance.memory(@instance.registers["PC"]))
 
                 if (serial_count >= @instance.serial_delay)
                     process_serial
@@ -200,8 +206,37 @@ module Zemu
                     serial_count += execution_time
                 end
 
-                @trace << r16("PC")
-                @trace = @trace.last(200)
+                unless @trace_exec_range.nil?
+                    if @trace_exec_range.cover?(@instance.registers["PC"])
+                        File.open("debug.trace", "a") do |f|
+                            f.puts "exec #{r16("PC")}"
+                        end
+                    end
+                end
+
+                unless @trace_range.nil?
+                    unless @trace_stack.empty?
+                        # Mark as exit if return.
+                        if executed_return
+                            exited = @trace_stack.pop
+                            File.open("debug.trace", "a") do |f|
+                                f.puts "exit #{exited.label} #{actual_cycles}"
+                            end
+                        end
+                    end
+
+                    if @trace_range.cover?(@instance.registers["PC"])
+                        # Mark as entry if the PC matches a label.
+                        syms = @symbol_table[@instance.registers["PC"]]
+                        unless syms.empty?
+                            sym = syms.first
+                            @trace_stack << sym
+                            File.open("debug.trace", "a") do |f|
+                                f.puts "enter #{sym.label} #{actual_cycles}"
+                            end
+                        end
+                    end
+                end
 
                 # Have we hit a breakpoint or HALT instruction?
                 if @instance.break?
@@ -262,7 +297,15 @@ module Zemu
 
             syms = Debug::Symbols.new([])
             begin
-                syms.merge! Debug.load_map(path.to_s)
+                syms.merge! (Debug.load_map(path.to_s) do |s|
+                    if /([0-9a-fA-F]+)\s+(\S+)/ =~ s
+                        addr = "0x#{$1}"
+                        label = $2
+                        [label, addr]
+                    else
+                        nil
+                    end
+                end)
             rescue ArgumentError => e
                 log "Error loading map file: #{e.message}"
                 syms.clear
