@@ -4,6 +4,8 @@ module Zemu
     module Debug
         # Loads a map file at the given path, and returns a hash of address => Symbol
         # for the symbols defined within.
+        #
+        # Takes a block for custom parsing - see Symbol::parse for details.
         def self.load_map(path, &block)
             symbols = []
 
@@ -28,6 +30,12 @@ module Zemu
                 @syms = []
                 syms.each do |s|
                     @syms << s
+                end
+
+                # Assign sizes of symbols (assuming contiguousness)
+                syms[0..-2].each_with_index do |sym, i|
+                    size = syms[i+1].address - sym.address
+                    sym.size = size
                 end
             end
 
@@ -115,9 +123,13 @@ module Zemu
             # Address of this symbol in the binary.
             attr_reader :address
 
+            # Size of this symbol, or nil if unknown.
+            attr_accessor :size
+
             def initialize(label, address)
                 @label = label
                 @address = address
+                @size = nil
             end
         end
     end

@@ -66,5 +66,43 @@ class MapTest < Minitest::Test
         assert symbols.find_by_name("symD").label == "symD"
         assert symbols.find_by_name("symD").address == 0x1234
     end
+
+    def test_parse_with_size
+        map = <<-MAP
+Value  Global                              Global Defined In Module
+-----  --------------------------------   ------------------------
+00009521  _t_keyword_parse                   t_keyword
+00009661  _keywords                          t_keyword
+000096CC  _do_print_string                   t_keyword
+000096FD  _do_print_numeric                  t_keyword
+00009729  _do_print                          t_keyword
+MAP
+        File.write("test_with_size.map", map)
+        
+        symbols = Zemu::Debug.load_map("test_with_size.map") do |s|
+            if /([0-9a-fA-F]+)\s+(\S+)/ =~ s
+                addr = "0x#{$1}"
+                label = $2
+                [label, addr]
+            else
+                nil
+            end
+        end
+
+        assert_equal 0x9521, symbols.find_by_name("_t_keyword_parse").address
+        assert_equal 0x140, symbols.find_by_name("_t_keyword_parse").size
+
+        assert_equal 0x9661, symbols.find_by_name("_keywords").address
+        assert_equal 0x6b, symbols.find_by_name("_keywords").size
+
+        assert_equal 0x96cc, symbols.find_by_name("_do_print_string").address
+        assert_equal 0x31, symbols.find_by_name("_do_print_string").size
+
+        assert_equal 0x96fd, symbols.find_by_name("_do_print_numeric").address
+        assert_equal 0x2c, symbols.find_by_name("_do_print_numeric").size
+
+        assert_equal 0x9729, symbols.find_by_name("_do_print").address
+        assert_nil   symbols.find_by_name("_do_print").size
+    end
 end
 
